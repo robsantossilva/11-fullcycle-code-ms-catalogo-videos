@@ -1,0 +1,393 @@
+{
+	"id": "0b371452-161b-aec9-932f-82f92ac125cd",
+	"name": "Microservices",
+	"description": "",
+	"order": [],
+	"folders": [
+		{
+			"name": "Category",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"order": [
+				"d00e3955-6f72-81cc-1018-56d537f059fc",
+				"9af324cd-15aa-fd50-6f41-6435ef40f0ec",
+				"b107dc99-ce4c-807f-e96b-1b5efadc58bc",
+				"c1f0de43-76b0-33a6-e9f0-5273537072b3",
+				"6b76e9c1-bf0e-eb6d-f2f4-4dbddc5fff46"
+			],
+			"owner": "11666330",
+			"folder": "960b951b-6992-3b0f-ae55-0e68916d5261",
+			"folders_order": [],
+			"id": "721d2d02-75a7-0d64-2488-348214a435ce"
+		},
+		{
+			"name": "Code Micro Video",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"order": [],
+			"owner": "11666330",
+			"folders_order": [
+				"721d2d02-75a7-0d64-2488-348214a435ce",
+				"bd815e44-787c-8feb-068e-e80608466d88"
+			],
+			"id": "960b951b-6992-3b0f-ae55-0e68916d5261"
+		},
+		{
+			"name": "Genre",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"order": [
+				"86175772-7829-9b0a-c89f-667d9f3f4293",
+				"26218e99-9983-cd04-f12a-379b1e216169",
+				"2a577add-8e1a-8155-af1a-534dc63ef267",
+				"5aebbf67-0e43-c7cd-6f00-62a117ec6c66",
+				"62eaec91-7e69-8990-1a2f-f65c117cd8dc"
+			],
+			"owner": "11666330",
+			"folder": "960b951b-6992-3b0f-ae55-0e68916d5261",
+			"folders_order": [],
+			"id": "bd815e44-787c-8feb-068e-e80608466d88"
+		}
+	],
+	"folders_order": [
+		"960b951b-6992-3b0f-ae55-0e68916d5261"
+	],
+	"timestamp": 1607458792132,
+	"owner": "11666330",
+	"public": false,
+	"requests": [
+		{
+			"id": "26218e99-9983-cd04-f12a-379b1e216169",
+			"headers": "Accept: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/genres/5597c2ce-eda0-4996-8865-82edc9a28573",
+			"folder": "bd815e44-787c-8feb-068e-e80608466d88",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607962988447,
+			"name": "Genre",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": []
+		},
+		{
+			"id": "2a577add-8e1a-8155-af1a-534dc63ef267",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/genres",
+			"folder": "bd815e44-787c-8feb-068e-e80608466d88",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607962967949,
+			"name": "Genre",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\":\"The First Category\",\n\t\"description\":\"Desc category\",\n\t\"is_active\":false\n}"
+		},
+		{
+			"id": "5aebbf67-0e43-c7cd-6f00-62a117ec6c66",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/genres/5597c2ce-eda0-4996-8865-82edc9a28573",
+			"folder": "bd815e44-787c-8feb-068e-e80608466d88",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "PUT",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607963019976,
+			"name": "Genre",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\":\"XXX The First Genre\",\n\t\"description\":\"XXX Desc Genre\",\n\t\"is_active\":true\n}"
+		},
+		{
+			"id": "62eaec91-7e69-8990-1a2f-f65c117cd8dc",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/genres/5597c2ce-eda0-4996-8865-82edc9a28573",
+			"folder": "bd815e44-787c-8feb-068e-e80608466d88",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "DELETE",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607963041066,
+			"name": "Genre",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": ""
+		},
+		{
+			"id": "6b76e9c1-bf0e-eb6d-f2f4-4dbddc5fff46",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/categories/104",
+			"folder": "721d2d02-75a7-0d64-2488-348214a435ce",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "DELETE",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607632179842,
+			"name": "Category",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": ""
+		},
+		{
+			"id": "86175772-7829-9b0a-c89f-667d9f3f4293",
+			"headers": "",
+			"headerData": [],
+			"url": "localhost:8000/api/genres",
+			"folder": "bd815e44-787c-8feb-068e-e80608466d88",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607962668566,
+			"name": "Genre List",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": []
+		},
+		{
+			"id": "9af324cd-15aa-fd50-6f41-6435ef40f0ec",
+			"headers": "Accept: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/categories/1785c6e5-4076-42f0-aaa4-3cec25bd3c5e",
+			"folder": "721d2d02-75a7-0d64-2488-348214a435ce",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607962511255,
+			"name": "Category",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"isFromCollection": true,
+			"collectionRequestId": "9af324cd-15aa-fd50-6f41-6435ef40f0ec"
+		},
+		{
+			"id": "b107dc99-ce4c-807f-e96b-1b5efadc58bc",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/categories",
+			"folder": "721d2d02-75a7-0d64-2488-348214a435ce",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607629249941,
+			"name": "Category",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\":\"The First Category\",\n\t\"description\":\"Desc category\",\n\t\"is_active\":false\n}"
+		},
+		{
+			"id": "c1f0de43-76b0-33a6-e9f0-5273537072b3",
+			"headers": "Accept: application/json\nContent-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Accept",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "localhost:8000/api/categories/101",
+			"folder": "721d2d02-75a7-0d64-2488-348214a435ce",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "PUT",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1607629306655,
+			"name": "Category",
+			"description": "",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\":\"XXX The First Category\",\n\t\"description\":\"XXX Desc category\",\n\t\"is_active\":true\n}"
+		},
+		{
+			"id": "d00e3955-6f72-81cc-1018-56d537f059fc",
+			"headers": "",
+			"headerData": [],
+			"url": "localhost:8000/api/categories",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "0b371452-161b-aec9-932f-82f92ac125cd",
+			"data": null,
+			"dataMode": "params",
+			"name": "Categories List",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1607459279197,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"folder": "721d2d02-75a7-0d64-2488-348214a435ce",
+			"isFromCollection": true,
+			"collectionRequestId": "d00e3955-6f72-81cc-1018-56d537f059fc"
+		}
+	]
+}
