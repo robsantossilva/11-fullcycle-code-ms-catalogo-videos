@@ -83,7 +83,7 @@ class CategoryTest extends TestCase
         $category = factory(Category::class)->create([
             'description'=>'test_description',
             'is_active'=>false
-        ])->first();
+        ]);
         $category->update([
             'name'=>'test_name_updated',
             'description'=>'test_name_description',
