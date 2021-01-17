@@ -2,40 +2,40 @@
 
 namespace Tests\Feature\Http\Controller\Api;
 
-use App\Models\Category;
+use App\Models\CastMember;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
-class CategoryControllerTest extends TestCase
+class CastMemberControllerTest extends TestCase
 {
     use DatabaseMigrations, TestValidations, TestSaves;
 
-    private $category;
+    private $castMember;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->category = factory(Category::class)->create();
+        $this->castMember = factory(CastMember::class)->create();
     }
 
     public function testIndex()
     {
         
-        $response = $this->get(route('categories.index'));
+        $response = $this->get(route('cast_members.index'));
         $response
             ->assertStatus(200)
-            ->assertJson([$this->category->toArray()]);
+            ->assertJson([$this->castMember->toArray()]);
     }
 
     public function testShow()
     {
-        $response = $this->get(route('categories.show', ['category' => $this->category->id]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $this->castMember->id]));
         $response
             ->assertStatus(200)
-            ->assertJson($this->category->toArray());
+            ->assertJson($this->castMember->toArray());
     }
 
     public function testInvalidationData()
@@ -50,9 +50,9 @@ class CategoryControllerTest extends TestCase
         $this->assertInvalidationInStoreAction($data,'validation.max.string', ['max'=>255]);
         $this->assertInvalidationInUpdateAction($data,'validation.max.string', ['max'=>255]);
         //////////////////////////////////////////////////////
-        $data = ['is_active'=> 'a'];
-        $this->assertInvalidationInStoreAction($data,'validation.boolean');
-        $this->assertInvalidationInUpdateAction($data,'validation.boolean');
+        $data = ['type'=> 'a'];
+        $this->assertInvalidationInStoreAction($data,'validation.integer');
+        $this->assertInvalidationInUpdateAction($data,'validation.integer');
         //////////////////////////////////////////////////////
         
     }
@@ -63,7 +63,7 @@ class CategoryControllerTest extends TestCase
         ];
         $response = $this->assertStore(
             $data, 
-            $data + ['description'=>null, 'is_active'=>true, 'deleted_at'=>null ]
+            $data + ['type'=>0, 'deleted_at'=>null ]
         );
         $response->assertJsonStructure([
             'created_at','updated_at'
@@ -71,25 +71,22 @@ class CategoryControllerTest extends TestCase
         //////////////////////////////////////////////qq
         $data = [
             'name'=>'test',
-            'description'=>'description',
-            'is_active'=>false
+            'type'=>2
         ];
         $this->assertStore(
             $data, 
-            $data + ['description'=>'description', 'is_active'=>false ]
+            $data + ['type'=>'test', 'type'=>2 ]
         );
     }
 
     public function testUpdate(){
 
-        $this->category = factory(Category::class)->create([
-            'description'=>'description',
-            'is_active'=>false
+        $this->castMember = factory(CastMember::class)->create([
+            'type'=>1
         ]);
         $data = [
             'name'=>'test',
-            'description'=>'test',
-            'is_active'=>true
+            'type'=>2
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at'=>null]);
         $response->assertJsonStructure([
@@ -98,51 +95,49 @@ class CategoryControllerTest extends TestCase
 
         $data = [
             'name'=>'test',
-            'description'=>''
         ];
-        $this->assertUpdate($data, array_merge($data, ['description'=>null]));
 
-        $data['description'] = 'test';
-        $this->assertUpdate($data, array_merge($data, ['description'=>'test']));
+        $data['type'] = 1;
+        $this->assertUpdate($data, array_merge($data, ['type'=>1]));
 
-        $data['description'] = null;
-        $this->assertUpdate($data, array_merge($data, ['description'=>null]));
+        $data['type'] = 2;
+        $this->assertUpdate($data, array_merge($data, ['type'=>2]));
     }
 
     public function testDestroy()
     {
 
         //checking if there is
-        $response = $this->get(route('categories.show', ['category' => $this->category->id]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $this->castMember->id]));
         $response
             ->assertStatus(200)
-            ->assertJson($this->category->toArray());
+            ->assertJson($this->castMember->toArray());
 
         //destroying
-        $response = $this->json('DELETE',route('categories.destroy',['category'=>$this->category->id]), []);
+        $response = $this->json('DELETE',route('cast_members.destroy',['cast_member'=>$this->castMember->id]), []);
         $response->assertStatus(204);
 
         //checking if it was destroyed
-        $response = $this->get(route('categories.show', ['category' => $this->category->id]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $this->castMember->id]));
         $response
             ->assertStatus(404);
 
-        $this->assertNull(Category::find($this->category->id));
-        $this->assertNotNull(Category::withTrashed()->find($this->category->id));
+        $this->assertNull(CastMember::find($this->castMember->id));
+        $this->assertNotNull(CastMember::withTrashed()->find($this->castMember->id));
     }
 
     protected function routeStore()
     {
-        return route('categories.store');
+        return route('cast_members.store');
     }
 
     protected function routeUpdate()
     {
-        return route('categories.update', ['category'=>$this->category->id]);
+        return route('cast_members.update', ['cast_member'=>$this->castMember->id]);
     }
 
     protected function model()
     {
-        return Category::class;
+        return CastMember::class;
     }
 }
