@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use \Ramsey\Uuid\Uuid as RamseyUuid;
 
-class CategoryTest extends TestCase
+class CastMemberTest extends TestCase
 {
 
     use DatabaseMigrations;
