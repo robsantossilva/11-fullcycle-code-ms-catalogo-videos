@@ -150,5 +150,8 @@ class BasicCrudControllerTest extends TestCase
 
     $this->assertInstanceOf(Response::class, $response);
     $this->assertEquals($response->getStatusCode(), 204);
+
+    $this->createTestResponse($response)
+          ->assertStatus(204);
   }
 }
