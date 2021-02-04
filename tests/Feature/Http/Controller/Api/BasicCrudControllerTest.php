@@ -54,6 +54,7 @@ class BasicCrudControllerTest extends TestCase
   {
     $this->expectException(ValidationException::class);
 
+    /** @var Request $request */
     $request = Mockery::mock(Request::class);
     $request->shouldReceive('all')
       ->once()
@@ -64,6 +65,7 @@ class BasicCrudControllerTest extends TestCase
 
   public function testStore()
   {
+    /** @var Request $request */
     $request = Mockery::mock(Request::class);
     $request->shouldReceive('all')
       ->once()
@@ -128,6 +130,8 @@ class BasicCrudControllerTest extends TestCase
     $obj->refresh();
 
     $data = ['name'=>'test_name_update','description'=>'test_description_update'];
+
+    /** @var Request $request */
     $request = Mockery::mock(Request::class);
     $request->shouldReceive('all')
       ->once()

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Video extends Model
@@ -40,12 +41,12 @@ class Video extends Model
     //php artisan make:migration create_genre_video_table
     //php artisan make:migration create_category_video_table
 
-    public function categories()
+    public function categories() : BelongsToMany
     {
         return $this->belongsToMany(Category::class);
     }
 
-    public function genres()
+    public function genres() : BelongsToMany
     {
         return $this->belongsToMany(Genre::class);
     }

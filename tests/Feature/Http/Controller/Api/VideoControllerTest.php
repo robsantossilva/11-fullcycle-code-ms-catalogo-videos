@@ -7,8 +7,8 @@ use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Request;
-use SebastianBergmann\Environment\Console;
+use Illuminate\Http\Request;
+use Tests\Exceptions\TestException;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
@@ -20,17 +20,19 @@ class VideoControllerTest extends TestCase
     private $video;
     private $sendData;
     private $testDatabase;
+    private $category;
+    private $genre;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $category = factory(Category::class)->create();
-        $genre = factory(Genre::class)->create();
+        $this->category = factory(Category::class)->create();
+        $this->genre = factory(Genre::class)->create();
 
         $this->video = factory(Video::class)->create();
-        $this->video->categories()->sync([$category->id]);
-        $this->video->genres()->sync([$genre->id]);
+        $this->video->categories()->sync([$this->category->id]);
+        $this->video->genres()->sync([$this->genre->id]);
         $this->video->load(['categories','genres']);
 
         $this->sendData = [
@@ -39,8 +41,8 @@ class VideoControllerTest extends TestCase
             'year_launched' => 2013,
             'rating'=>Video::RATING_LIST[0],
             'duration' => 90,
-            'categories_id' => [$category->id],
-            'genres_id' => [$genre->id]
+            'categories_id' => [$this->category->id],
+            'genres_id' => [$this->genre->id]
         ];
 
         $this->testDatabase = $this->sendData;
@@ -56,9 +58,6 @@ class VideoControllerTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson([$this->video->toArray()]);
-
-        // dump($response->baseResponse->getContent());
-        // dd([$this->video->toArray()]);
     }
 
     public function testRollbackStore()
@@ -68,21 +67,59 @@ class VideoControllerTest extends TestCase
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 
-        $controller->shouldReceive('validate')
+        $controller
+            ->shouldReceive('validate')
             ->withAnyArgs()
             ->andReturn($this->sendData);
 
-        $controller->shouldReceive('rulesStore')
+        $controller
+            ->shouldReceive('ruleStore')
             ->withAnyArgs()
-            ->andReturnTrue([]);
+            ->andReturn([]);
 
         $request = \Mockery::mock(Request::class);
 
         $controller->shouldReceive('handleRelations')
             ->once()
-            ->andThrow(new \Exception());
+            ->andThrow(new TestException());
 
-        $controller->store($request);
+        try {
+            $controller->store($request);
+        } catch (TestException $exception) {
+            $this->assertCount(1, Video::all());
+        }
+        
+    }
+
+    public function testRollbackUpdate()
+    {
+
+        $controller = \Mockery::mock(VideoController::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+
+        $controller
+            ->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn($this->sendData);
+
+        $controller
+            ->shouldReceive('ruleStore')
+            ->withAnyArgs()
+            ->andReturn([]);
+
+        $request = \Mockery::mock(Request::class);
+
+        $controller->shouldReceive('handleRelations')
+            ->once()
+            ->andThrow(new TestException());
+
+        try {
+            $controller->update($request, $this->video->id);
+        } catch (TestException $exception) {
+            $this->assertCount(1, Video::all());
+        }
+        
     }
 
     public function testShow()
@@ -215,6 +252,9 @@ class VideoControllerTest extends TestCase
         $response->assertJsonStructure([
             'created_at','updated_at'
         ]);
+
+        $this->assertVideoHasCategory($response);
+        $this->assertVideoHasGenre($response);
     }
 
     public function testUpdate(){
@@ -229,14 +269,56 @@ class VideoControllerTest extends TestCase
             $this->testDatabase + ['opened'=>true]
         );
 
-        $response = $this->assertUpdate(
+        $this->assertUpdate(
             $this->sendData + ['rating'=>Video::RATING_LIST[1]], 
             $this->testDatabase + ['rating'=>Video::RATING_LIST[1]]
         );
 
+        #################################################################
+        $this->category = factory(Category::class)->create();
+        $this->genre = factory(Genre::class)->create();
+
+        $dataSend = [
+            'title'=>'title',
+            'description' => 'description',
+            'year_launched' => 2013,
+            'rating'=>Video::RATING_LIST[0],
+            'duration' => 90
+        ];
+        $response = $this->assertUpdate(
+            $dataSend + [
+                'categories_id' => [$this->category->id],
+                'genres_id' => [$this->genre->id]
+            ], 
+            $dataSend
+        );
+
+        $this->assertVideoHasCategory($response);
+        $this->assertVideoHasGenre($response);
+
         $response->assertJsonStructure([
             'created_at','updated_at'
         ]);
+    }
+
+    protected function assertVideoHasCategory($response)
+    {
+        $response = json_decode($response->baseResponse->content());
+        $hasCategory = false;
+        foreach($response->categories as $category){
+            $hasCategory = $category->id == $this->category->id ? true : false;
+        }
+        $this->assertTrue($hasCategory);
+    }
+
+    protected function assertVideoHasGenre($response)
+    {
+        $response = json_decode($response->baseResponse->content());
+        $hasGenre = false;
+        foreach($response->genres as $genre){
+            $hasGenre = $genre->id == $this->genre->id ? true : false;
+        }
+        $this->assertTrue($hasGenre);
     }
 
     public function testDestroy()

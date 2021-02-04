@@ -16,7 +16,7 @@ class CreateVideosTable extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->smallInteger('year_launched');
             $table->boolean('opened')->default(false);
             $table->string('rating', 3);

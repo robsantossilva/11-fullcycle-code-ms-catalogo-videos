@@ -30,25 +30,33 @@ class VideoUnitTest extends TestCase
                 'rating',
                 'duration'
             ],
-            $this->genre->getFillable()
+            $this->video->getFillable()
         );
     }
 
     public function testIncrementingAttribute(){
-        $this->assertFalse($this->genre->incrementing);
+        $this->assertFalse($this->video->incrementing);
     }
 
     public function testKeyTypeAttribute(){
         $this->assertEquals(
             'string',
-            $this->genre->getKeyType()
+            $this->video->getKeyType()
         );
     }
 
     public function testCastsAttribute(){
         $this->assertEquals(
-            ['id'=>'string','is_active'=>'boolean'],
-            $this->genre->getCasts()
+            [
+                'id' => 'string',
+                'title' => 'string',
+                'description' => 'string',
+                'year_launched' => 'integer',
+                'opened' => 'boolean',
+                'rating' => 'string',
+                'duration' => 'integer'
+            ],
+            $this->video->getCasts()
         );
     }
 
@@ -57,18 +65,42 @@ class VideoUnitTest extends TestCase
             SoftDeletes::class, Uuid::class
         ];
 
-        $genreTraits = array_keys(class_uses(Genre::class));
+        $videoTraits = array_keys(class_uses(Video::class));
 
-        $this->assertEquals($traits, $genreTraits);
+        $this->assertEquals($traits, $videoTraits);
     }
 
     public function testDatesAttribute(){
         $dates = ['deleted_at','updated_at','created_at'];
 
         foreach($dates as $date){
-            $this->assertContains($date,$this->genre->getDates());
+            $this->assertContains($date,$this->video->getDates());
         }
 
-        $this->assertCount(count($dates), $this->genre->getDates());
+        $this->assertCount(count($dates), $this->video->getDates());
+    }
+
+    public function testCategoriesMethodExists(){
+        $methods = [
+            'categories',
+            'genres'
+        ];
+        $this->verifyMethodExists($methods);
+
+        // $this->assertEquals(
+        //     get_class($this->video->categories()), 
+        //     "Illuminate\Database\Eloquent\Relations\BelongsToMany"
+        // );
+
+        // $this->assertEquals(
+        //     get_class($this->video->genres()), 
+        //     "Illuminate\Database\Eloquent\Relations\BelongsToMany"
+        // );
+    }
+
+    protected function verifyMethodExists(array $methods){
+        foreach($methods as $method){
+            $this->assertTrue(method_exists(Video::class, $method));
+        }
     }
 }
