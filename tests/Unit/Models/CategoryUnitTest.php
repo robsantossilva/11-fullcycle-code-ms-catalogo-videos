@@ -2,17 +2,17 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\CastMember;
+use App\Models\Category;
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
-class CastMemberTest extends TestCase
+class CategoryUnitTest extends TestCase
 {
     use DatabaseMigrations;
 
-    private $castMember;
+    private $category;
 
     public static function setUpBeforeClass(): void
     {
@@ -23,7 +23,7 @@ class CastMemberTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->castMember = new CastMember();
+        $this->category = new Category();
 
     }
 
@@ -45,26 +45,26 @@ class CastMemberTest extends TestCase
     public function testFillableAttribute()
     {
         $this->assertEquals(
-            ['name','type'],
-            $this->castMember->getFillable()
+            ['name','description','is_active'],
+            $this->category->getFillable()
         );
     }
 
     public function testIncrementingAttribute(){
-        $this->assertFalse($this->castMember->incrementing);
+        $this->assertFalse($this->category->incrementing);
     }
 
     public function testKeyTypeAttribute(){
         $this->assertEquals(
             'string',
-            $this->castMember->getKeyType()
+            $this->category->getKeyType()
         );
     }
 
     public function testCastsAttribute(){
         $this->assertEquals(
-            ['id'=>'string','name'=>'string','type'=>'integer'],
-            $this->castMember->getCasts()
+            ['id'=>'string','is_active'=>'boolean'],
+            $this->category->getCasts()
         );
     }
 
@@ -73,18 +73,18 @@ class CastMemberTest extends TestCase
             SoftDeletes::class, Uuid::class
         ];
 
-        $castMemberTraits = array_keys(class_uses(CastMember::class));
+        $categoryTraits = array_keys(class_uses(Category::class));
 
-        $this->assertEquals($traits, $castMemberTraits);
+        $this->assertEquals($traits, $categoryTraits);
     }
 
     public function testDatesAttribute(){
         $dates = ['deleted_at','updated_at','created_at'];
 
         foreach($dates as $date){
-            $this->assertContains($date,$this->castMember->getDates());
+            $this->assertContains($date,$this->category->getDates());
         }
 
-        $this->assertCount(count($dates), $this->castMember->getDates());
+        $this->assertCount(count($dates), $this->category->getDates());
     }
 }

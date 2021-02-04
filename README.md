@@ -27,3 +27,5 @@ Nosso aluno [Yuri Koster](https://github.com/yurikoster1) criou outra opção do
 ## Postman Collection
 <a href="micro-video-backend.postman_collection.json">Collection Json</a>
 
+## Lazy Loading Vs Eager Loading
+

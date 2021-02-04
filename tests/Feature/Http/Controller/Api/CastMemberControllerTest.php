@@ -18,7 +18,9 @@ class CastMemberControllerTest extends TestCase
     {
         parent::setUp();
 
-        $this->castMember = factory(CastMember::class)->create();
+        $this->castMember = factory(CastMember::class)->create([
+            'type' => CastMember::TYPE_DIRECTOR
+        ]);
     }
 
     public function testIndex()
@@ -54,16 +56,22 @@ class CastMemberControllerTest extends TestCase
         $this->assertInvalidationInStoreAction($data,'validation.integer');
         $this->assertInvalidationInUpdateAction($data,'validation.integer');
         //////////////////////////////////////////////////////
+
+        $data = ['type'=> 'a'];
+        $this->assertInvalidationInStoreAction($data,'validation.in');
+        $this->assertInvalidationInUpdateAction($data,'validation.in');
+        //////////////////////////////////////////////////////
         
     }
 
     public function testStore(){
         $data = [
-            'name'=>'test'
+            'name'=>'test',
+            'type'=>CastMember::TYPE_ACTOR
         ];
         $response = $this->assertStore(
             $data, 
-            $data + ['type'=>0, 'deleted_at'=>null ]
+            $data + ['type'=>CastMember::TYPE_ACTOR, 'deleted_at'=>null ]
         );
         $response->assertJsonStructure([
             'created_at','updated_at'
@@ -71,22 +79,22 @@ class CastMemberControllerTest extends TestCase
         //////////////////////////////////////////////qq
         $data = [
             'name'=>'test',
-            'type'=>2
+            'type'=>CastMember::TYPE_DIRECTOR
         ];
         $this->assertStore(
             $data, 
-            $data + ['type'=>'test', 'type'=>2 ]
+            $data + ['type'=>'test', 'type'=>CastMember::TYPE_DIRECTOR ]
         );
     }
 
     public function testUpdate(){
 
         $this->castMember = factory(CastMember::class)->create([
-            'type'=>1
+            'type'=>CastMember::TYPE_DIRECTOR
         ]);
         $data = [
             'name'=>'test',
-            'type'=>2
+            'type'=>CastMember::TYPE_ACTOR
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at'=>null]);
         $response->assertJsonStructure([
@@ -97,11 +105,11 @@ class CastMemberControllerTest extends TestCase
             'name'=>'test',
         ];
 
-        $data['type'] = 1;
-        $this->assertUpdate($data, array_merge($data, ['type'=>1]));
+        $data['type'] = CastMember::TYPE_DIRECTOR;
+        $this->assertUpdate($data, array_merge($data, ['type'=>CastMember::TYPE_DIRECTOR]));
 
-        $data['type'] = 2;
-        $this->assertUpdate($data, array_merge($data, ['type'=>2]));
+        $data['type'] = CastMember::TYPE_ACTOR;
+        $this->assertUpdate($data, array_merge($data, ['type'=>CastMember::TYPE_ACTOR]));
     }
 
     public function testDestroy()
