@@ -18,4 +18,6 @@ class CastMember extends Model
         'name'=>'string',
         'type'=>'integer'
     ];
+    const TYPE_DIRECTOR = 1;
+    const TYPE_ACTOR = 2;
 }
