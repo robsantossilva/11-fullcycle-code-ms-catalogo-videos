@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controller\Api;
 
+use App\Models\Category;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
@@ -13,21 +14,24 @@ class GenreControllerTest extends TestCase
     use DatabaseMigrations, TestValidations, TestSaves;
 
     private $genre;
+    private $category;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->category = factory(Category::class)->create();
 
         $this->genre = factory(Genre::class)->create();
+        $this->genre->categories()->sync([$this->category->id]);
+        $this->genre->load(array_keys(Genre::RELATED_TABLES))->refresh();
     }
 
     public function testIndex()
     {
         $response = $this->get(route('genres.index'));
-
         $response
             ->assertStatus(200)
-            ->assertJson([$this->genre->toArray()]);
+            ->assertJsonFragment([$this->genre->toArray()]);
     }
 
     public function testShow()
@@ -37,6 +41,8 @@ class GenreControllerTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson($this->genre->toArray());
+
+        $this->assertEquals($response->baseResponse->content(), json_encode($this->genre->toArray()));
     }
 
     public function testInvalidationData()
@@ -55,7 +61,20 @@ class GenreControllerTest extends TestCase
          $this->assertInvalidationInStoreAction($data,'validation.boolean');
          $this->assertInvalidationInUpdateAction($data,'validation.boolean');
          //////////////////////////////////////////////////////
+    }
 
+    public function testInvalidationCategoriesIdField()
+    {
+        $data = [
+            'categories_id' => 'a'
+        ];
+        $this->assertInvalidationInStoreAction($data,'validation.array');
+        $this->assertInvalidationInUpdateAction($data,'validation.array'); 
+        $data = [
+            'categories_id' => [123]
+        ];
+        $this->assertInvalidationInStoreAction($data,'validation.exists');
+        $this->assertInvalidationInUpdateAction($data,'validation.exists');
     }
 
     public function testStore(){
@@ -63,7 +82,7 @@ class GenreControllerTest extends TestCase
             'name'=>'test'
         ];
         $response = $this->assertStore(
-            $data, 
+            $data + ['categories_id'=>[$this->category->id]], 
             $data + ['description'=>null, 'is_active'=>true, 'deleted_at'=>null ]
         );
         $response->assertJsonStructure([
@@ -75,10 +94,13 @@ class GenreControllerTest extends TestCase
             'description'=>'description',
             'is_active'=>false
         ];
-        $this->assertStore(
-            $data, 
+        
+        $response = $this->assertStore(
+            $data + ['categories_id'=>[$this->category->id]], 
             $data + ['description'=>'description', 'is_active'=>false ]
         );
+
+        $this->assertGenreHasCategory($response);
     }
 
     public function testUpdate(){
@@ -92,7 +114,10 @@ class GenreControllerTest extends TestCase
             'description'=>'test',
             'is_active'=>true
         ];
-        $response = $this->assertUpdate($data, $data + ['deleted_at'=>null]);
+        $response = $this->assertUpdate(
+            $data + ['categories_id'=>[$this->category->id]], 
+            $data + ['deleted_at'=>null]
+        );
         $response->assertJsonStructure([
             'created_at','updated_at'
         ]);
@@ -101,13 +126,45 @@ class GenreControllerTest extends TestCase
             'name'=>'test',
             'description'=>''
         ];
-        $this->assertUpdate($data, array_merge($data, ['description'=>null]));
+        $this->assertUpdate(
+            $data + ['categories_id'=>[$this->category->id]], 
+            array_merge($data, ['description'=>null])
+        );
 
         $data['description'] = 'test';
-        $this->assertUpdate($data, array_merge($data, ['description'=>'test']));
+        $this->assertUpdate(
+            $data + ['categories_id'=>[$this->category->id]],
+            array_merge($data, ['description'=>'test'])
+        );
 
         $data['description'] = null;
-        $this->assertUpdate($data, array_merge($data, ['description'=>null]));
+        $this->assertUpdate(
+            $data + ['categories_id'=>[$this->category->id]],
+            array_merge($data, ['description'=>null])
+        );
+
+        #####################################################
+        $this->category = factory(Category::class)->create();
+        $data = [
+            'name'=>'test',
+            'description'=>'test',
+            'is_active'=>true
+        ];
+        $response = $this->assertUpdate(
+            $data + ['categories_id'=>[$this->category->id]],
+            $data
+        );
+        $this->assertGenreHasCategory($response);
+    }
+
+    protected function assertGenreHasCategory($response)
+    {
+        $response = json_decode($response->baseResponse->content());
+        $hasCategory = false;
+        foreach($response->categories as $category){
+            $hasCategory = $category->id == $this->category->id ? true : false;
+        }
+        $this->assertTrue($hasCategory);
     }
 
     public function testDestroy()

@@ -13,6 +13,11 @@ class CategoryControllerStub extends BasicCrudController
       return CategoryStub::class;
     }
 
+    protected function relatedTables() : array
+    {
+      return [];
+    }
+
     protected function ruleStore()
     {
       return [

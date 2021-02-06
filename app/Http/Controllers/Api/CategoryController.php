@@ -13,6 +13,11 @@ class CategoryController extends BasicCrudController
       'is_active'=>'boolean'
     ];
 
+    protected function relatedTables() : array
+    {
+      return [];
+    }
+
     protected function model()
     {
       return Category::class;

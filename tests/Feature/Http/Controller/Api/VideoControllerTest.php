@@ -29,11 +29,13 @@ class VideoControllerTest extends TestCase
 
         $this->category = factory(Category::class)->create();
         $this->genre = factory(Genre::class)->create();
+        $this->genre->categories()->sync([$this->category->id]);
+        $this->genre->load(array_keys(Genre::RELATED_TABLES))->refresh();
 
         $this->video = factory(Video::class)->create();
         $this->video->categories()->sync([$this->category->id]);
         $this->video->genres()->sync([$this->genre->id]);
-        $this->video->load(['categories','genres']);
+        $this->video->load(array_keys(Video::RELATED_TABLES))->refresh();
 
         $this->sendData = [
             'title'=>'title',
@@ -57,7 +59,7 @@ class VideoControllerTest extends TestCase
         $response = $this->get(route('videos.index'));
         $response
             ->assertStatus(200)
-            ->assertJson([$this->video->toArray()]);
+            ->assertJsonFragment([$this->video->toArray()]);
     }
 
     public function testRollbackStore()
@@ -128,8 +130,8 @@ class VideoControllerTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson($this->video->toArray());
-        // dump($response->baseResponse->getContent());
-        // dd([$this->video->toArray()]);
+
+        $this->assertEquals($response->baseResponse->content(), json_encode($this->video->toArray()));
     }
 
     public function testInvalidationData()
@@ -232,6 +234,24 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data,'validation.exists');
     }
 
+    public function testInvalidationGenresNotLinked()
+    {
+        $this->category = factory(Category::class)->create();
+        $this->genre = factory(Genre::class)->create();
+
+        // $this->genre = factory(Genre::class)->create();
+        // $this->genre->categories()->sync([$this->category->id]);
+        // $this->genre->load(array_keys(Genre::RELATED_TABLES))->refresh();
+
+        $data = [
+            'categories_id' => [$this->category->id],
+            'genres_id' => [$this->genre->id]
+        ];
+
+        $this->assertInvalidationInStoreAction($data,'validation.categorygenrelinked');
+        $this->assertInvalidationInUpdateAction($data,'validation.categorygenrelinked');
+    }
+
     public function testStore(){
 
         $this->assertStore(
@@ -277,6 +297,8 @@ class VideoControllerTest extends TestCase
         #################################################################
         $this->category = factory(Category::class)->create();
         $this->genre = factory(Genre::class)->create();
+        $this->genre->categories()->sync([$this->category->id]);
+        $this->genre->load(array_keys(Genre::RELATED_TABLES))->refresh();
 
         $dataSend = [
             'title'=>'title',
