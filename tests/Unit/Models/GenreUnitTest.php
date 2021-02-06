@@ -61,4 +61,17 @@ class GenreUnitTest extends TestCase
 
         $this->assertCount(count($dates), $this->genre->getDates());
     }
+
+    public function testGenresMethodExists(){
+        $methods = [
+            'categories'
+        ];
+        $this->verifyMethodExists($methods);
+    }
+
+    protected function verifyMethodExists(array $methods){
+        foreach($methods as $method){
+            $this->assertTrue(method_exists(Genre::class, $method));
+        }
+    }
 }
