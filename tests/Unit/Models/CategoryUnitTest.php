@@ -87,4 +87,17 @@ class CategoryUnitTest extends TestCase
 
         $this->assertCount(count($dates), $this->category->getDates());
     }
+
+    public function testGenresMethodExists(){
+        $methods = [
+            'genres'
+        ];
+        $this->verifyMethodExists($methods);
+    }
+
+    protected function verifyMethodExists(array $methods){
+        foreach($methods as $method){
+            $this->assertTrue(method_exists(Category::class, $method));
+        }
+    }
 }

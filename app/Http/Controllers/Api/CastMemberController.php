@@ -16,6 +16,11 @@ class CastMemberController extends BasicCrudController
       ];
     }
 
+    protected function relatedTables() : array
+    {
+      return [];
+    }
+
     protected function model()
     {
       return CastMember::class;
