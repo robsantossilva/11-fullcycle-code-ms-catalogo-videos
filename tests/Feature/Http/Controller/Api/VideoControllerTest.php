@@ -80,16 +80,23 @@ class VideoControllerTest extends TestCase
             ->andReturn([]);
 
         $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->withAnyArgs()
+            ->andReturn([]);
 
         $controller->shouldReceive('handleRelations')
             ->once()
             ->andThrow(new TestException());
 
+        $hasError = false;
         try {
             $controller->store($request);
         } catch (TestException $exception) {
             $this->assertCount(1, Video::all());
+            $hasError = true;
         }
+        $this->assertTrue($hasError);
         
     }
 
@@ -101,26 +108,38 @@ class VideoControllerTest extends TestCase
             ->shouldAllowMockingProtectedMethods();
 
         $controller
+            ->shouldReceive('findOrFail')
+            ->withAnyArgs()
+            ->andReturn($this->video);
+
+        $controller
             ->shouldReceive('validate')
             ->withAnyArgs()
             ->andReturn($this->sendData);
 
         $controller
-            ->shouldReceive('ruleStore')
+            ->shouldReceive('ruleUpdate')
             ->withAnyArgs()
             ->andReturn([]);
 
         $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->withAnyArgs()
+            ->andReturn([]);
 
         $controller->shouldReceive('handleRelations')
             ->once()
             ->andThrow(new TestException());
 
+        $hasError = false;
         try {
             $controller->update($request, $this->video->id);
         } catch (TestException $exception) {
             $this->assertCount(1, Video::all());
+            $hasError = true;
         }
+        $this->assertTrue($hasError);
         
     }
 
@@ -218,6 +237,14 @@ class VideoControllerTest extends TestCase
         ];
         $this->assertInvalidationInStoreAction($data,'validation.exists');
         $this->assertInvalidationInUpdateAction($data,'validation.exists');
+
+        $category = factory(Category::class)->create();
+        $category->delete();
+        $data = [
+            'categories_id' => [$category->id]
+        ];
+        $this->assertInvalidationInStoreAction($data,'validation.exists');
+        $this->assertInvalidationInUpdateAction($data,'validation.exists');
     }
 
     public function testInvalidationGenresIdField()
@@ -229,6 +256,14 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data,'validation.array'); 
         $data = [
             'genres_id' => [123]
+        ];
+        $this->assertInvalidationInStoreAction($data,'validation.exists');
+        $this->assertInvalidationInUpdateAction($data,'validation.exists');
+
+        $genre = factory(Genre::class)->create();
+        $genre->delete();
+        $data = [
+            'categories_id' => [$genre->id]
         ];
         $this->assertInvalidationInStoreAction($data,'validation.exists');
         $this->assertInvalidationInUpdateAction($data,'validation.exists');
@@ -244,7 +279,6 @@ class VideoControllerTest extends TestCase
         // $this->genre->load(array_keys(Genre::RELATED_TABLES))->refresh();
 
         $data = [
-            'categories_id' => [$this->category->id],
             'genres_id' => [$this->genre->id]
         ];
 
@@ -331,6 +365,10 @@ class VideoControllerTest extends TestCase
             $hasCategory = $category->id == $this->category->id ? true : false;
         }
         $this->assertTrue($hasCategory);
+        $this->assertDatabaseHas('category_video',[
+            'video_id'=>$response->id,
+            'category_id'=>$this->category->id
+        ]);
     }
 
     protected function assertVideoHasGenre($response)
@@ -341,6 +379,114 @@ class VideoControllerTest extends TestCase
             $hasGenre = $genre->id == $this->genre->id ? true : false;
         }
         $this->assertTrue($hasGenre);
+        $this->assertDatabaseHas('genre_video',[
+            'video_id'=>$response->id,
+            'genre_id'=>$this->genre->id
+        ]);
+    }
+
+    public function testSyncCategories()
+    {
+        $sendData = [
+            'title'=>'title',
+            'description' => 'description',
+            'year_launched' => 2013,
+            'rating'=>Video::RATING_LIST[0],
+            'duration' => 90
+        ];
+
+        $categoriesId = factory(Category::class, 3)->create()->pluck('id')->toArray();
+        $genre = factory(Genre::class)->create();
+        $genre->categories()->sync($categoriesId);
+        $genreId = $genre->id;
+
+        $response = $this->json(
+            'POST', 
+            $this->routeStore(), 
+            $sendData + [
+                'genres_id' => [$genreId],
+                'categories_id' => [$categoriesId[0]]
+            ]
+        );
+
+        $this->assertDatabaseHas('category_video',[
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id')
+        ]);
+
+        $response = $this->json(
+            'PUT', 
+            route('videos.update', ['video'=>$response->json('id')]), 
+            $sendData + [
+                'genres_id' => [$genreId],
+                'categories_id' => [$categoriesId[1],$categoriesId[2]]
+            ]
+        );
+        $this->assertDatabaseMissing('category_video',[
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video',[
+            'category_id' => $categoriesId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('category_video',[
+            'category_id' => $categoriesId[2],
+            'video_id' => $response->json('id')
+        ]);
+    }
+
+    public function testSyncGenres()
+    {
+        $sendData = [
+            'title'=>'title',
+            'description' => 'description',
+            'year_launched' => 2013,
+            'rating'=>Video::RATING_LIST[0],
+            'duration' => 90
+        ];
+
+        $genres = factory(Genre::class, 3)->create();
+        $genresId = $genres->pluck('id')->toArray();
+        $categoryId = factory(Category::class)->create()->id;
+        $genres->each(function($genre) use ($categoryId){
+            $genre->categories()->sync($categoryId);
+        });            
+
+        $response = $this->json(
+            'POST', 
+            $this->routeStore(), 
+            $sendData + [
+                'genres_id' => [$genresId[0]],
+                'categories_id' => [$categoryId]
+            ]
+        );
+
+        $this->assertDatabaseHas('genre_video',[
+            'video_id' => $response->json('id'),
+            'genre_id' => [$genresId[0]],
+        ]);
+
+        $response = $this->json(
+            'PUT', 
+            route('videos.update', ['video'=>$response->json('id')]), 
+            $sendData + [
+                'genres_id' => [$genresId[1],$genresId[2]],
+                'categories_id' => [$categoryId]
+            ]
+        );
+        $this->assertDatabaseMissing('genre_video',[
+            'genre_id' => $genresId[0],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('genre_video',[
+            'genre_id' => $genresId[1],
+            'video_id' => $response->json('id')
+        ]);
+        $this->assertDatabaseHas('genre_video',[
+            'genre_id' => $genresId[2],
+            'video_id' => $response->json('id')
+        ]);
     }
 
     public function testDestroy()

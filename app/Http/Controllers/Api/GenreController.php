@@ -11,7 +11,7 @@ class GenreController extends BasicCrudController
     'name'=>'required|max:255',
     'description'=>'nullable',
     'is_active'=>'boolean',
-    'categories_id' => 'required|array|exists:categories,id',
+    'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
   ];
 
   protected function relatedTables() : array

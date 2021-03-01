@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BasicCrudController;
 use App\Models\Video;
 use App\Rules\CategoryGenreLinked;
+use App\Rules\GenresHasCategoriesRule;
 use Illuminate\Http\Request;
 
 class VideoController extends BasicCrudController
@@ -23,8 +24,11 @@ class VideoController extends BasicCrudController
     return Video::class;
   }
 
-  protected function ruleStore()
-  {
+  protected function rules() {
+
+    $categoriesId = $this->request->get('categories_id');
+    $categoriesId = is_array($categoriesId) ? $categoriesId : [];
+
     $this->rules = [
       'title'=>'required|max:255',
       'description' => 'required',
@@ -35,21 +39,28 @@ class VideoController extends BasicCrudController
       'categories_id' => [
         'required',
         'array',
-        'exists:categories,id',
-        new CategoryGenreLinked($this->request)
+        'exists:categories,id,deleted_at,NULL',
+        //new CategoryGenreLinked($this->request)
       ],
       'genres_id' => [
         'required',
         'array',
-        'exists:genres,id',
-        new CategoryGenreLinked($this->request)
+        'exists:genres,id,deleted_at,NULL',
+        //new CategoryGenreLinked($this->request)
+        new GenresHasCategoriesRule($categoriesId)
       ]
     ];
     return $this->rules;
   }
 
+  protected function ruleStore()
+  {
+    
+    return $this->rules();
+  }
+
   protected function ruleUpdate()
   {
-    return $this->rules;
+    return $this->rules();
   }
 }
