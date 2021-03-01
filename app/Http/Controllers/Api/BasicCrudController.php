@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 abstract class BasicCrudController extends Controller
 {
 
+    /**
+     * @var Request $request
+     */
     protected $request;
 
     protected abstract function model();
