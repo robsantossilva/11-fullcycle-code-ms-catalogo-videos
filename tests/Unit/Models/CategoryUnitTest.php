@@ -70,7 +70,8 @@ class CategoryUnitTest extends TestCase
 
     public function testIfUseTraits(){
         $traits = [
-            SoftDeletes::class, Uuid::class
+            SoftDeletes::class, 
+            Uuid::class
         ];
 
         $categoryTraits = array_keys(class_uses(Category::class));
