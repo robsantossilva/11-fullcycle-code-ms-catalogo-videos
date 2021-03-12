@@ -9,7 +9,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use \Ramsey\Uuid\Uuid as RamseyUuid;
-use Tests\Exceptions\TestException;
 
 class VideoTest extends TestCase
 {
@@ -93,6 +92,7 @@ class VideoTest extends TestCase
                 'opened',
                 'rating',
                 'duration',
+                'video_file',
                 "deleted_at",
                 "created_at",
                 "updated_at"
