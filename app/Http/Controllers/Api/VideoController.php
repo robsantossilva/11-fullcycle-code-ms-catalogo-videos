@@ -48,7 +48,8 @@ class VideoController extends BasicCrudController
         'exists:genres,id,deleted_at,NULL',
         //new CategoryGenreLinked($this->request)
         new GenresHasCategoriesRule($categoriesId)
-      ]
+      ],
+      'video_file' => 'file|mimetypes:video/mp4|max:2000'
     ];
     return $this->rules;
   }
@@ -63,4 +64,26 @@ class VideoController extends BasicCrudController
   {
     return $this->rules();
   }
+
+
+  public function store(Request $request)
+  {
+      $this->request = $request;
+      $validatedData = $this->validate($request, $this->ruleStore());
+      /** @var Video $obj */
+      $obj = $this->model()::create($validatedData);
+      $obj->refresh();
+      return $obj;
+  }
+
+  public function update(Request $request, $id)
+  {
+      $this->request = $request;
+      $obj = $this->findOrFail($id);
+      $validatedData = $this->validate($request, $this->ruleStore());
+      $obj->update($validatedData);
+      $obj->refresh();
+      return $obj;
+  }
+
 }
