@@ -35,3 +35,4 @@ steps:
 # - id: "Rodando docker ps"
 #   name: 'gcr.io/cloud-builders/docker'
 #   args: ['ps']
+# php /var/www/vendor/bin/phpunit -c /var/www/phpunit.xml
