@@ -1,33 +1,14 @@
-<?php
+<?php 
+namespace Tests\Feature\Models\Video;
 
-namespace Tests\Feature\Models;
-
+use App\Models\Video;
 use App\Models\Category;
 use App\Models\Genre;
-use App\Models\Video;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Tests\TestCase;
 use \Ramsey\Uuid\Uuid as RamseyUuid;
 
-class VideoTest extends TestCase
+class VideoCrudTest extends BaseVideoTestCase
 {
-    use DatabaseMigrations;
-
-    private $data;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->data = [
-            'title'=>'title',
-            'description' => 'description',
-            'year_launched' => 2013,
-            'rating'=>Video::RATING_LIST[0],
-            'duration' => 90,
-        ];
-    }
-
     public function testRollbackCreate()
     {
         $hasError = false;
@@ -93,6 +74,7 @@ class VideoTest extends TestCase
                 'rating',
                 'duration',
                 'video_file',
+                'thumb_file',
                 "deleted_at",
                 "created_at",
                 "updated_at"
@@ -103,12 +85,17 @@ class VideoTest extends TestCase
 
     public function testCreateWithBasicFields()
     {
-        $video = Video::create($this->data);
+        $fileFields = [];
+        foreach(Video::$fileFields as $field){
+            $fileFields[$field] = "{$field}.test";
+        }
+
+        $video = Video::create($this->data + $fileFields);
         $video->refresh();
 
         $this->assertEquals(36, strlen($video->id));
         $this->assertFalse($video->opened);
-        $this->assertDatabaseHas('videos', $this->data + ['opened'=>false]);
+        $this->assertDatabaseHas('videos', $this->data + $fileFields + ['opened'=>false]);
         
         $video = Video::create($this->data + ['opened'=> true]);
         $this->assertTrue($video->opened);
@@ -141,6 +128,25 @@ class VideoTest extends TestCase
             'video_id'=> $videoId,
             'genre_id'=> $genreId
         ]);
+    }
+
+    public function testUpdateWithBasicFields()
+    {
+        $fileFields = [];
+        foreach(Video::$fileFields as $field){
+            $fileFields[$field] = "{$field}.test";
+        }
+
+        $video = factory(Video::class)->create(['opened'=>false]);
+        $video->update($this->data + $fileFields);
+        $this->assertFalse($video->opened);
+        $this->assertDatabaseHas('videos', $this->data + $fileFields + ['opened'=>false]);
+        
+        $video = factory(Video::class)->create(['opened'=>false]);
+        $video->update($this->data + $fileFields + ['opened'=>true]);
+        $this->assertTrue($video->opened);
+        $this->assertDatabaseHas('videos', $this->data + ['opened'=>true]);
+
     }
 
     public function testCreate()
