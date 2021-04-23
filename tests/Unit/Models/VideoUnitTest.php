@@ -31,9 +31,24 @@ class VideoUnitTest extends TestCase
                 'rating',
                 'duration',
                 'video_file',
-                'thumb_file'
+                'thumb_file',
+                'banner_file',
+                'trailer_file'
             ],
             $this->video->getFillable()
+        );
+    }
+
+    public function testFileFields()
+    {
+        $this->assertEquals(
+            [
+                'video_file',
+                'thumb_file',
+                'banner_file',
+                'trailer_file'
+            ],
+            $this->video::$fileFields
         );
     }
 
@@ -89,16 +104,6 @@ class VideoUnitTest extends TestCase
             'genres'
         ];
         $this->verifyMethodExists($methods);
-
-        // $this->assertEquals(
-        //     get_class($this->video->categories()), 
-        //     "Illuminate\Database\Eloquent\Relations\BelongsToMany"
-        // );
-
-        // $this->assertEquals(
-        //     get_class($this->video->genres()), 
-        //     "Illuminate\Database\Eloquent\Relations\BelongsToMany"
-        // );
     }
 
     protected function verifyMethodExists(array $methods){

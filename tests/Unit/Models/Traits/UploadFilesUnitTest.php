@@ -112,4 +112,20 @@ class UploadFilesUnitTest extends TestCase
         $this->assertEquals(['file1' => $file1->hashName(), 'file2' => $file2->hashName(), 'other' => 'test'], $attributes);
         $this->assertEquals([$file1, $file2], $files);
     }
+
+    public function testGetFileUrl()
+    {
+        $fileUrl = UploadFilesStub::getFileUrl("123.jpg");
+        $this->assertEquals($fileUrl, env('GOOGLE_CLOUD_STORAGE_API_URI')."/123.jpg");
+    }
+
+    public function testThumbFileUrlAttribute(){
+        $this->obj->thumb_file_url = "123.png";
+        $this->assertEquals( $this->obj->thumb_file_url, env('GOOGLE_CLOUD_STORAGE_API_URI')."/123.png");
+    }
+
+    public function testVideoFileUrlAttribute(){
+        $this->obj->video_file_url = "456.jpg";
+        $this->assertEquals( $this->obj->video_file_url, env('GOOGLE_CLOUD_STORAGE_API_URI')."/456.jpg");
+    }
 }
