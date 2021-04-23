@@ -49,7 +49,10 @@ class VideoController extends BasicCrudController
         //new CategoryGenreLinked($this->request)
         new GenresHasCategoriesRule($categoriesId)
       ],
-      'video_file' => 'file|mimetypes:video/mp4|max:2000'
+      'video_file' => 'file|mimetypes:video/mp4|max:50000000',
+      'thumb_file' => 'file|mimes:jpg,png,jpeg|max:5000',
+      'banner_file' => 'file|mimes:jpg,png,jpeg|max:10000',
+      'trailer_file' => 'file|mimes:jpg,png,jpeg|max:1000000'
     ];
     return $this->rules;
   }
