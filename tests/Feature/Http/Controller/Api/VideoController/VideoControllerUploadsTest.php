@@ -20,8 +20,38 @@ class VideoControllerUploadsTest extends BaseVideoControllerTestCase
         $this->assertInvalidationFile(
             'video_file',
             'mp4',
-            2000,
+            50000000,
             'validation.mimetypes', ['values' => 'video/mp4']
+        );
+    }
+
+    public function testInvalidationThumbField()
+    {
+        $this->assertInvalidationFile(
+            'thumb_file',
+            'jpg',
+            5000,
+            'validation.mimetypes', ['values' => 'jpg, png, jpeg']
+        );
+    }
+
+    public function testInvalidationBannerField()
+    {
+        $this->assertInvalidationFile(
+            'banner_file',
+            'png',
+            10000,
+            'validation.mimetypes', ['values' => 'jpg, png, jpeg']
+        );
+    }
+
+    public function testInvalidationTrailerField()
+    {
+        $this->assertInvalidationFile(
+            'trailer_file',
+            'jpeg',
+            1000000,
+            'validation.mimetypes', ['values' => 'jpg, png, jpeg']
         );
     }
 
@@ -83,33 +113,11 @@ class VideoControllerUploadsTest extends BaseVideoControllerTestCase
     protected function getFiles()
     {
         return [
-            'video_file' => UploadedFile::fake()->create('video_file.mp4')
+            'video_file' => UploadedFile::fake()->create('video_file.mp4'),
+            'thumb_file' => UploadedFile::fake()->create('thumb_file.jpg'),
+            'banner_file' => UploadedFile::fake()->create('banner_file.png'),
+            'trailer_file' => UploadedFile::fake()->create('trailer_file.jpeg')
         ];
-    }
-
-    public function testInvalidationVideoFile()
-    {
-
-        //////////////////////////////////////////////
-        $data = [
-            'video_file'=>'a'
-        ];
-        $this->assertInvalidationInStoreAction($data,'validation.file');
-        $this->assertInvalidationInUpdateAction($data,'validation.file');      
-        
-        //////////////////////////////////////////////
-        $data = [
-            'video_file'=>UploadedFile::fake()->create('video.avi')
-        ];
-        $this->assertInvalidationInStoreAction($data,'validation.mimetypes', ['values'=>'video/mp4']);
-        $this->assertInvalidationInUpdateAction($data,'validation.mimetypes', ['values'=>'video/mp4']); 
-
-        // //////////////////////////////////////////////
-        $data = [
-            'video_file'=>UploadedFile::fake()->create('video.mp4')->size(2001)
-        ];
-        $this->assertInvalidationInStoreAction($data,'validation.max.file', ['max'=>2000]);
-        $this->assertInvalidationInUpdateAction($data,'validation.max.file', ['max'=>2000]); 
     }
 
     protected function assertVideoHasCategory($response)
