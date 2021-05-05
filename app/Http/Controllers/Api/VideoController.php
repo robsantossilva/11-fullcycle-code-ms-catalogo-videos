@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BasicCrudController;
+use App\Http\Resources\VideoResource;
 use App\Models\Video;
 use App\Rules\CategoryGenreLinked;
 use App\Rules\GenresHasCategoriesRule;
@@ -49,10 +50,10 @@ class VideoController extends BasicCrudController
         //new CategoryGenreLinked($this->request)
         new GenresHasCategoriesRule($categoriesId)
       ],
-      'video_file' => 'file|mimetypes:video/mp4|max:50000000',
-      'thumb_file' => 'file|mimes:jpg,png,jpeg|max:5000',
-      'banner_file' => 'file|mimes:jpg,png,jpeg|max:10000',
-      'trailer_file' => 'file|mimes:jpg,png,jpeg|max:1000000'
+      'thumb_file' => 'image|max:'.Video::THUMB_FILE_MAX_SIZE,//5MB
+      'banner_file' => 'image|max:'.Video::BANNER_FILE_MAX_SIZE,//10MB
+      'trailer_file' => 'mimetypes:video/mp4|max:'.Video::TRAILER_FILE_MAX_SIZE,//1GB
+      'video_file' => 'mimetypes:video/mp4|max:'.Video::VIDEO_FILE_MAX_SIZE,//50GB
     ];
     return $this->rules;
   }
@@ -87,6 +88,16 @@ class VideoController extends BasicCrudController
       $obj->update($validatedData);
       $obj->refresh();
       return $obj;
+  }
+
+  protected function resourceCollection()
+  {
+    return $this->resource();
+  }
+
+  protected function resource()
+  {
+    return VideoResource::class;
   }
 
 }

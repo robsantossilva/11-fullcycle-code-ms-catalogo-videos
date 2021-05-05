@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 
 abstract class BasicCrudController extends Controller
 {
@@ -15,6 +17,8 @@ abstract class BasicCrudController extends Controller
      */
     protected $request;
 
+    protected $paginationSize = 15;
+
     protected abstract function model();
 
     protected abstract function ruleStore();
@@ -23,6 +27,10 @@ abstract class BasicCrudController extends Controller
 
     protected abstract function relatedTables() : array ;
 
+    protected abstract function resource();
+
+    protected abstract function resourceCollection();
+
     /**
      * Display a listing of the resource.
      *
@@ -30,17 +38,28 @@ abstract class BasicCrudController extends Controller
      */
     public function index(Request $request)//GET
     {
-        if($request->has('only_trashed')){
-            if($this->relatedTables()){
-                return $this->model()::with(array_keys($this->relatedTables()))->onlyTrashed()->get();
-            }
-            return $this->model()::onlyTrashed()->get();
-        }
+        // if($request->has('only_trashed')){
+        //     if($this->relatedTables()){
+        //         return $this->model()::with(array_keys($this->relatedTables()))->onlyTrashed()->get();
+        //     }
+        //     return $this->model()::onlyTrashed()->get();
+        // }
         
         if($this->relatedTables()){
-            return $this->model()::with(array_keys($this->relatedTables()))->get();
+            $data = !$this->paginationSize 
+                ? $this->model()::with(array_keys($this->relatedTables()))->get()
+                : $this->model()::with(array_keys($this->relatedTables()))->paginate();
+        }else{
+            $data = !$this->paginationSize 
+                ? $this->model()::all() 
+                : $this->model()::paginate($this->paginationSize);
         }
-        return $this->model()::all();
+        
+        $resourceCollectionClass = $this->resourceCollection();
+        $refClass = new \ReflectionClass($resourceCollectionClass);
+        return $refClass->isSubclassOf(ResourceCollection::class)
+            ? new $resourceCollectionClass($data)
+            : $resourceCollectionClass::collection($data);
     }
 
     public function store(Request $request)
@@ -58,12 +77,14 @@ abstract class BasicCrudController extends Controller
                 return $obj;
             });
             $obj->load(array_keys($this->relatedTables()))->refresh();
-            return $obj;
+            $resource = $this->resource();
+            return new $resource($obj);
         }
 
         $obj = $this->model()::create($validatedData);
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     protected function findOrFail($id)
@@ -77,9 +98,13 @@ abstract class BasicCrudController extends Controller
     {
         if($this->relatedTables())
         {
-            return $this->findOrFail($id)->load(array_keys($this->relatedTables()));
-        }
-        return $this->findOrFail($id);
+            $obj = $this->findOrFail($id)->load(array_keys($this->relatedTables()));
+        }else{
+            $obj = $this->findOrFail($id);
+        }        
+
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function update(Request $request, $id)
@@ -97,12 +122,14 @@ abstract class BasicCrudController extends Controller
                 return $obj;
             });      
             $obj->load(array_keys($this->relatedTables()))->refresh();
-            return $obj;
+            $resource = $this->resource();
+            return new $resource($obj);
         }
 
         $obj->update($validatedData);
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function destroy($id)

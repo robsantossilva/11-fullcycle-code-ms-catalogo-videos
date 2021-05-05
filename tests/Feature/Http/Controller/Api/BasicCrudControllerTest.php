@@ -42,9 +42,11 @@ class BasicCrudControllerTest extends TestCase
       'is_active'=> false
     ]);
     $category->refresh();
-    $result = $this->controller->index($resquest = new Request)->toArray();
 
-    $this->assertEquals([$category->toArray()],$result);
+    /** @var \App\Http\Resources\CategoryResource $result */
+    $result = $this->controller->index($resquest = new Request);
+
+    $this->assertEquals([$category->toArray()], $result->response()->getData(true)['data']);
   }
 
   // /**
@@ -72,9 +74,11 @@ class BasicCrudControllerTest extends TestCase
       ->andReturn(['name'=>'test_name','description'=>'test_description']);
 
     $obj = $this->controller->store($request);
+    $obj = $obj->response()->getData(true)['data'];
+
     $this->assertEquals(
-      CategoryStub::find($obj->id)->toArray(),
-      $obj->toArray()
+      CategoryStub::find($obj['id'])->toArray(),
+      $obj
     );
   }
 
@@ -117,7 +121,10 @@ class BasicCrudControllerTest extends TestCase
     ]);
     $obj->refresh();
 
-    $this->assertEquals($obj->toArray(), $this->controller->show($obj->id)->toArray());
+    $result = $this->controller->show($obj->id);
+    $result = $result->response()->getData(true)['data'];
+
+    $this->assertEquals($obj->toArray(), $result);
   }
 
   public function testUpdate()
@@ -138,8 +145,9 @@ class BasicCrudControllerTest extends TestCase
       ->andReturn($data);
 
     $newObj = $this->controller->update($request, $obj->id);
+    $newObj = $newObj->response()->getData(true)['data'];
 
-    $this->assertEquals($newObj->toArray(), CategoryStub::find(1)->toArray());
+    $this->assertEquals($newObj, CategoryStub::find(1)->toArray());
   }
 
   public function testDestroy()

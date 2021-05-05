@@ -3,21 +3,32 @@
 namespace Tests\Feature\Http\Controller\Api;
 
 use App\Http\Controllers\Api\GenreController;
+use App\Http\Resources\GenreResource;
 use App\Models\Category;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
 use Tests\Exceptions\TestException;
 use Tests\TestCase;
+use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
 class GenreControllerTest extends TestCase
 {
-    use DatabaseMigrations, TestValidations, TestSaves;
+    use DatabaseMigrations, TestValidations, TestSaves, TestResources;
 
     private $genre;
     private $category;
+    private $serializedFields = [
+        'id',
+        'name',
+        'description',
+        'is_active',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
 
     protected function setUp(): void
     {
@@ -34,7 +45,20 @@ class GenreControllerTest extends TestCase
         $response = $this->get(route('genres.index'));
         $response
             ->assertStatus(200)
-            ->assertJsonFragment([$this->genre->toArray()]);
+            ->assertJson([
+                'meta' => ['per_page' => 15]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => $this->serializedFields
+                ],
+                'links' => [],
+                'meta' => []
+            ])
+            ->assertJson(['data'=>[$this->genre->toArray()]]);
+
+        $resource = GenreResource::collection(collect([$this->genre]));
+        $this->assertResource($response, $resource);
     }
 
     public function testRollbackStore()
@@ -119,9 +143,14 @@ class GenreControllerTest extends TestCase
 
         $response
             ->assertStatus(200)
-            ->assertJson($this->genre->toArray());
+            ->assertJsonStructure([
+                'data' => $this->serializedFields
+            ])
+            ->assertJson(['data'=>$this->genre->toArray()]);
 
-        $this->assertEquals($response->baseResponse->content(), json_encode($this->genre->toArray()));
+        //Expected resource
+        $resource = new GenreResource(Genre::find($response->json('data.id')));
+        $this->assertResource($response, $resource);
     }
 
     public function testInvalidationData()
@@ -173,7 +202,7 @@ class GenreControllerTest extends TestCase
             $data + ['description'=>null, 'is_active'=>true, 'deleted_at'=>null ]
         );
         $response->assertJsonStructure([
-            'created_at','updated_at'
+            'data'=> $this->serializedFields
         ]);
         //////////////////////////////////////////////qq
         $data = [
@@ -186,6 +215,10 @@ class GenreControllerTest extends TestCase
             $data + ['categories_id'=>[$this->category->id]], 
             $data + ['description'=>'description', 'is_active'=>false ]
         );
+
+        //Expected resource
+        $resource = new GenreResource(Genre::find($response->json('data.id')));
+        $this->assertResource($response, $resource);
 
         $this->assertGenreHasCategory($response);
     }
@@ -206,7 +239,7 @@ class GenreControllerTest extends TestCase
             $data + ['deleted_at'=>null]
         );
         $response->assertJsonStructure([
-            'created_at','updated_at'
+            'data'=> $this->serializedFields
         ]);
 
         $data = [
@@ -241,6 +274,11 @@ class GenreControllerTest extends TestCase
             $data + ['categories_id'=>[$this->category->id]],
             $data
         );
+
+        //Expected resource
+        $resource = new GenreResource(Genre::find($response->json('data.id')));
+        $this->assertResource($response, $resource);
+
         $this->assertGenreHasCategory($response);
     }
 
@@ -248,12 +286,12 @@ class GenreControllerTest extends TestCase
     {
         $response = json_decode($response->baseResponse->content());
         $hasCategory = false;
-        foreach($response->categories as $category){
+        foreach($response->data->categories as $category){
             $hasCategory = $category->id == $this->category->id ? true : false;
         }
         $this->assertTrue($hasCategory);
         $this->assertDatabaseHas('category_genre',[
-            'genre_id'=>$response->id,
+            'genre_id'=>$response->data->id,
             'category_id'=>$this->category->id
         ]);
     }
@@ -269,25 +307,25 @@ class GenreControllerTest extends TestCase
         $response = $this->json('POST', $this->routeStore(), $sendData);
         $this->assertDatabaseHas('category_genre',[
             'category_id' => $categoriesId[0],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
 
         $sendData = [
             'name'=>'test',
             'categories_id' => [$categoriesId[1], $categoriesId[2]]
         ];
-        $response = $this->json('PUT', route('genres.update', ['genre'=>$response->json('id')]), $sendData);
+        $response = $this->json('PUT', route('genres.update', ['genre'=>$response->json('data.id')]), $sendData);
         $this->assertDatabaseMissing('category_genre',[
             'category_id' => $categoriesId[0],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_genre',[
             'category_id' => $categoriesId[1],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_genre',[
             'category_id' => $categoriesId[2],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
     }
 
@@ -297,7 +335,7 @@ class GenreControllerTest extends TestCase
         $response = $this->get(route('genres.show', ['genre' => $this->genre->id]));
         $response
             ->assertStatus(200)
-            ->assertJson($this->genre->toArray());
+            ->assertJson(['data'=>$this->genre->toArray()]);
 
         //destroying
         $response = $this->json('DELETE',route('genres.destroy',['genre'=>$this->genre->id]), []);
