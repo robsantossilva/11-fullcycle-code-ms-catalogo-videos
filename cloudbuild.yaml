@@ -19,7 +19,7 @@ steps:
     - GOOGLE_CLOUD_KEY_FILE=service-account-storage.json
     - GOOGLE_CLOUD_STORAGE_BUCKET=storage-micro-videos
     - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/storage-micro-videos
-    - TESTING_PROD=true
+    - TESTING_PROD=false
 
 - id: "Rodando docker ps"
   name: 'gcr.io/cloud-builders/docker'

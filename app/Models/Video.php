@@ -13,6 +13,12 @@ class Video extends Model
     use SoftDeletes, Uuid, UploadFiles;
 
     const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
+
+    const THUMB_FILE_MAX_SIZE = 1024 * 5; //5MB
+    const BANNER_FILE_MAX_SIZE = 1024 * 10; //10MB
+    const TRAILER_FILE_MAX_SIZE = 1024 * 1024 * 1; //1GB
+    const VIDEO_FILE_MAX_SIZE = 1024 * 1024 * 50; //50GB
+
     const RELATED_TABLES = [
         'categories' => 'categories_id',
         'genres' => 'genres_id'
@@ -131,5 +137,25 @@ class Video extends Model
     protected function uploadDir()
     {
        return $this->id; 
+    }
+
+    public function getThumbFileUrlAttribute()
+    {
+        return $this->thumb_file ? $this->getFileUrl($this->thumb_file) : null;
+    }
+
+    public function getBannerFileUrlAttribute($value=null)
+    {
+        return $this->banner_file ? $this->getFileUrl($this->banner_file) : null;
+    }
+
+    public function getTrailerFileUrlAttribute($value=null)
+    {
+        return $this->trailer_file ? $this->getFileUrl($this->trailer_file) : null;
+    }
+
+    public function getVideoFileUrlAttribute($value=null)
+    {
+        return $this->video_file ? $this->getFileUrl($this->video_file) : null;
     }
 }

@@ -26,6 +26,10 @@ trait UploadFiles
         });
     }
 
+    public function relativeFilePath($value){
+        return "{$this->uploadDir()}/{$value}";
+    }
+
     /**
      * @param UploadedFile[] $files
      */
@@ -74,24 +78,9 @@ trait UploadFiles
         return $files;
     }
 
-    public static function getFileUrl($value)
+    public function getFileUrl($filename)
     {
-        return env('GOOGLE_CLOUD_STORAGE_API_URI')."/".$value;
-    }
-
-    public function getThumbFileUrlAttribute($value=null)
-    {
-        if(!$value){
-            $value = $this->thumb_file;
-        }
-        return self::getFileUrl($value);
-    }
-
-    public function getVideoFileUrlAttribute($value=null)
-    {
-        if(!$value){
-            $value = $this->video_file;
-        }
-        return self::getFileUrl($value);
+        return \Storage::url($this->relativeFilePath($filename));
+        //return env('GOOGLE_CLOUD_STORAGE_API_URI')."/".$value;
     }
 }

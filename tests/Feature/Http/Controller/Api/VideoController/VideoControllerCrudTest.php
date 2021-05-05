@@ -2,16 +2,35 @@
 
 namespace Tests\Feature\Http\Controller\Api\VideoController;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use Tests\Feature\Http\Controller\Api\VideoController\BaseVideoControllerTestCase;
+use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
 class VideoControllerCrudTest extends BaseVideoControllerTestCase
 {
-    use TestValidations, TestSaves;
+    use TestValidations, TestSaves, TestResources;
+
+    private $serializedFields = [
+        'id',
+        'title',
+        'description',
+        'year_launched',
+        'opened',
+        'rating',
+        'duration',
+        'video_file',
+        'thumb_file',
+        'banner_file',
+        'trailer_file',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
 
     public function testIndex()
     {
@@ -19,7 +38,19 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
         $response = $this->get(route('videos.index'));
         $response
             ->assertStatus(200)
-            ->assertJsonFragment([$this->video->toArray()]);
+            ->assertJsonFragment(['data'=>[$this->video->toArray()]])
+            ->assertJson([
+                'meta' => ['per_page' => 15]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => $this->serializedFields
+                ],
+                'links' => [],
+                'meta' => []
+            ]);
+        $resource = VideoResource::collection(collect([$this->video]));
+        $this->assertResource($response, $resource);
     }
 
     public function testShow()
@@ -27,9 +58,16 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
         $response = $this->get(route('videos.show', ['video' => $this->video->id]));
         $response
             ->assertStatus(200)
-            ->assertJson($this->video->toArray());
+            ->assertJsonStructure([
+                'data' => $this->serializedFields
+            ])
+            ->assertJson(['data'=>$this->video->toArray()]);
 
-        $this->assertEquals($response->baseResponse->content(), json_encode($this->video->toArray()));
+        $this->assertEquals($response->baseResponse->content(), json_encode(['data'=>$this->video->toArray()]));
+
+        //Expected resource
+        $resource = new VideoResource(Category::find($response->json('data.id')));
+        $this->assertResource($response, $resource);
     }
 
     public function testInvalidationData()
