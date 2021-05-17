@@ -68,7 +68,7 @@ class Video extends Model
             /** @var Video $obj */
             $obj = static::query()->create($attributes);
             static::handleRelations($obj, $attributes);
-            $obj->load(array_keys(self::relatedTables()))->refresh();
+            //$obj->load(array_keys(self::relatedTables()))->refresh();
             $obj->uploadFiles($files);
 
             \DB::commit();
@@ -89,7 +89,7 @@ class Video extends Model
             \DB::beginTransaction();
             $saved = parent::update($attributes, $options);
             static::handleRelations($this, $attributes);
-            $this->load(array_keys(self::relatedTables()))->refresh();
+            //$this->load(array_keys(self::relatedTables()))->refresh();
             if($saved){
                 $this->uploadFiles($files);
             }            
