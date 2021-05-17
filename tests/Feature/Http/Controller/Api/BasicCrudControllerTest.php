@@ -46,7 +46,9 @@ class BasicCrudControllerTest extends TestCase
     /** @var \App\Http\Resources\CategoryResource $result */
     $result = $this->controller->index($resquest = new Request);
 
-    $this->assertEquals([$category->toArray()], $result->response()->getData(true)['data']);
+    $serialized = $result->response()->getData(true)['data'];
+
+    $this->assertEquals([$category->toArray()], $serialized);
   }
 
   // /**

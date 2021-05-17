@@ -45,15 +45,15 @@ abstract class BasicCrudController extends Controller
         //     return $this->model()::onlyTrashed()->get();
         // }
         
-        if($this->relatedTables()){
+        /*if($this->relatedTables()){
             $data = !$this->paginationSize 
                 ? $this->model()::with(array_keys($this->relatedTables()))->get()
                 : $this->model()::with(array_keys($this->relatedTables()))->paginate();
-        }else{
+        }else{*/
             $data = !$this->paginationSize 
                 ? $this->model()::all() 
                 : $this->model()::paginate($this->paginationSize);
-        }
+        //}
         
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new \ReflectionClass($resourceCollectionClass);
@@ -96,12 +96,12 @@ abstract class BasicCrudController extends Controller
 
     public function show($id) //GET
     {
-        if($this->relatedTables())
+        /*if($this->relatedTables())
         {
             $obj = $this->findOrFail($id)->load(array_keys($this->relatedTables()));
-        }else{
+        }else{*/
             $obj = $this->findOrFail($id);
-        }        
+        //}        
 
         $resource = $this->resource();
         return new $resource($obj);

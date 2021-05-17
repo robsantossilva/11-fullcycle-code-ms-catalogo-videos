@@ -14,10 +14,10 @@ $factory->define(Video::class, function (Faker $faker) {
         'opened' => rand(0,1),
         'rating' => Video::RATING_LIST[array_rand(Video::RATING_LIST)],
         'duration' => rand(1,30),
-        // 'thumb_file' => null,
-        // 'banner_file' => null,
-        // 'trailer_file' => null,
-        // 'video_file' => null,
+        'thumb_file' => 'thumb.png',
+        'banner_file' => 'banner.jpg',
+        'trailer_file' => 'trailer.mp4',
+        'video_file' => 'video.mp4',
         // 'published' => rand(0,1)
     ];
 });

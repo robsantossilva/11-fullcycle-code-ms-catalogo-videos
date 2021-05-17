@@ -145,7 +145,12 @@ class VideoUploadTest extends BaseVideoTestCase
 
     public function testFileUrlsIfNullWhenFieldsAreNull()
     {
-        $video = factory(Video::class)->create();
+        $video = factory(Video::class)->create([
+            'thumb_file' => null,
+            'banner_file' => null,
+            'trailer_file' => null,
+            'video_file' => null
+        ]);
         foreach(Video::$fileFields as $field){
             $fileUrl = $video->{"{$field}_url"};
             $this->assertNull($fileUrl);
