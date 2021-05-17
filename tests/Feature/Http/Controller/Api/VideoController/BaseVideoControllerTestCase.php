@@ -39,11 +39,7 @@ abstract class BaseVideoControllerTestCase extends TestCase
             'rating'=>Video::RATING_LIST[0],
             'duration' => 90,
             'categories_id' => [$this->category->id],
-            'genres_id' => [$this->genre->id],
-            'thumb_file' => 'thumb.png',
-            'banner_file' => 'banner.jpg',
-            'trailer_file' => 'trailer.mp4',
-            'video_file' => 'video.mp4',
+            'genres_id' => [$this->genre->id]
         ];
 
         $this->testDatabase = $this->sendData;
