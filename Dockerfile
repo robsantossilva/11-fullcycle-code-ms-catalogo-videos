@@ -30,6 +30,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN ln -s public html
 
+RUN npm config set cache /var/www/.npm-cache --global
+
 RUN usermod -u 1000 www-data
 USER www-data
 
