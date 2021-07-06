@@ -14,7 +14,7 @@ RUN apk add --no-cache openssl \
 
 RUN touch /home/www-data/.bashrc | echo "PS1='\w\$ '" >> /home/www-data/.bashrc
 
-RUN docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql bcmath
 RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include --with-png-dir=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd
 
