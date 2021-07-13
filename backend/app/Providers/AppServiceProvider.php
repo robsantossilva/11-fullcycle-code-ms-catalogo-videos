@@ -29,9 +29,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
-        Category::observe(CategoryObserver::class);
-        Genre::observe(GenreObserver::class);
-        CastMember::observe(CastMemberObserver::class);
+        if(env('TESTING_PROD') !== false){
+            Category::observe(CategoryObserver::class);
+            Genre::observe(GenreObserver::class);
+            CastMember::observe(CastMemberObserver::class);
+        }
     }
 }
