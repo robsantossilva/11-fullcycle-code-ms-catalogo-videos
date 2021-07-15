@@ -11,13 +11,13 @@ interface ListProps {
 
 const PageList = (props: ListProps) => {
     return(
-        <Page title="Members List">
+        <Page title="Cast Members List">
             <Box dir={'rtl'}>
                 <Fab
-                    title="Add Member"
+                    title="Add Cast Member"
                     size="small"
                     component={Link}
-                    to="/members/create"
+                    to="/cast-members/create"
                 >
                     <AddIcon />
                 </Fab>
