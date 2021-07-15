@@ -2,13 +2,24 @@ import * as React from 'react';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import { useEffect } from 'react';
 import { useState } from 'react';
-import { httpVideo } from '../../util/http';
-import { Chip } from '@material-ui/core';
+import { Chip, IconButton } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
+import categoryHttp from '../../util/http/category-http';
+import EditIcon from '@material-ui/icons/Edit';
+import {Link} from "react-router-dom";
 
 
 const columnsDefinition: MUIDataTableColumn[] = [
+    {
+        name: 'id',
+        label: 'ID',
+        //width: '30%',
+        options: {
+            sort: false,
+            filter: false
+        }
+    },
     {
         name: "name",
         label: "Name"
@@ -30,6 +41,25 @@ const columnsDefinition: MUIDataTableColumn[] = [
                 return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
             }
         }
+    },
+    {
+        name: "actions",
+        label: "Ações",
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta) => {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/categories/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon/>
+                    </IconButton>
+                )
+            }
+        }
     }
 ];
 
@@ -39,19 +69,26 @@ const data = [
     {name: "Test1", is_active:true, created_at:"2021-06-17"}
 ]
 
+
+interface Category {
+    id: string;
+    name: string;
+    is_active: string;
+    created_at: string;
+}
+
 type TableProps = {
 
 };
 
 const Table: React.FC = (props: TableProps) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<Category[]>([]);
 
     useEffect(() => {
-        httpVideo.get('categories').then(
-            response => {
-                setData(response.data.data)
-                console.log(response.data.data)
+        categoryHttp.list<{data: Category[]}>().then(
+            ({data}) => {
+                setData(data.data);
             }
         )
     }, []);
