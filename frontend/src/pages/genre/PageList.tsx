@@ -17,7 +17,7 @@ const PageList = (props: ListProps) => {
                     title="Add Genre"
                     size="small"
                     component={Link}
-                    to="/genres"
+                    to="/genres/create"
                 >
                     <AddIcon />
                 </Fab>

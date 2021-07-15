@@ -3,15 +3,25 @@ import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { httpVideo } from '../../util/http';
-import { Chip } from '@material-ui/core';
+import { Chip, IconButton } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
+import EditIcon from '@material-ui/icons/Edit';
+import {Link} from "react-router-dom";
 
 interface Category {
     name: string
 }
 
 const columnsDefinition: MUIDataTableColumn[] = [
+    {
+        name: "id",
+        label: "ID",
+        options: {
+            sort: false,
+            filter: false
+        }
+    },
     {
         name: "name",
         label: "Name"
@@ -21,9 +31,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
         label: "Categories",
         options: {
             customBodyRender(value: Category[], tableMeta, updateValue){
-                const categories = value.map((e:Category, i:Number) => {
-                    return e.name;
-                }).join(', ');
+                const categories = value.map((e:Category, i:Number) => e.name).join(', ');
                 return categories;
             }
         }
@@ -43,6 +51,25 @@ const columnsDefinition: MUIDataTableColumn[] = [
         options: {
             customBodyRender(value, tableMeta, updateValue){
                 return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
+            }
+        }
+    },
+    {
+        name: "actions",
+        label: "Ações",
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta) => {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/genres/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon/>
+                    </IconButton>
+                )
             }
         }
     }

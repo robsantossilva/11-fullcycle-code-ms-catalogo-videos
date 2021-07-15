@@ -5,9 +5,24 @@ import { useState } from 'react';
 import { httpVideo } from '../../util/http';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
+import { IconButton } from '@material-ui/core';
+import EditIcon from '@material-ui/icons/Edit';
+import {Link} from "react-router-dom";
 
+const CastMemberTypeMap = {
+    1: 'Director',
+    2: 'Actor'
+}
 
 const columnsDefinition: MUIDataTableColumn[] = [
+    {
+        name: "id",
+        label:"ID",
+        options: {
+            sort: false,
+            filter: false
+        }
+    },
     {
         name: "name",
         label: "Name"
@@ -17,7 +32,8 @@ const columnsDefinition: MUIDataTableColumn[] = [
         label: "Type",
         options: {
             customBodyRender(value, tableMeta, updateValue){
-                return <span>{value}</span> 
+                let i = value.split('-')[0];
+                return <span>{CastMemberTypeMap[i]}</span> 
             }
         }
     },
@@ -27,6 +43,25 @@ const columnsDefinition: MUIDataTableColumn[] = [
         options: {
             customBodyRender(value, tableMeta, updateValue){
                 return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
+            }
+        }
+    },
+    {
+        name: "actions",
+        label: "Ações",
+        options: {
+            sort: false,
+            filter: false,
+            customBodyRender: (value, tableMeta) => {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/cast-members/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon/>
+                    </IconButton>
+                )
             }
         }
     }

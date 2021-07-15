@@ -45,7 +45,7 @@ export default function Breadcrumbs() {
 
         pathnames.unshift('/')
 
-        console.log(pathnames, location.pathname)
+        //console.log(pathnames, location.pathname)
 
         return (
           <MuiBreadcrumbs aria-label="breadcrumb">
@@ -55,7 +55,7 @@ export default function Breadcrumbs() {
 
               const route = Object.keys(breadcrumbNameMap).find(path => (new RouteParser(path)).match(to) );
 
-              console.log(route, to);
+              //console.log(route, to);
 
               if(route === undefined) {
                 return false;
