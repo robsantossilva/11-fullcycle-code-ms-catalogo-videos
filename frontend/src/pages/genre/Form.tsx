@@ -24,8 +24,9 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const classes = useStyles();
 
     const buttonProps: ButtonProps = {
-        variant: "outlined",
-        className: classes.submit
+        variant: "contained",
+        className: classes.submit,
+        color: 'secondary'
     }
 
     const { 

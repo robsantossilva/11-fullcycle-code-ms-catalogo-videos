@@ -12,9 +12,10 @@ interface ListProps {
 const PageList = (props: ListProps) => {
     return(
         <Page title="List Genres">
-            <Box dir={'rtl'}>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title="Add Genre"
+                    color={'secondary'}
                     size="small"
                     component={Link}
                     to="/genres/create"
