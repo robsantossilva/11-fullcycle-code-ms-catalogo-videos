@@ -6,6 +6,8 @@ import categoryHttp from '../../util/http/category-http';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Category, Genre } from '../../util/models';
+import * as yup from 'yup';
+import { useSnackbar } from 'notistack';
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -13,7 +15,17 @@ const useStyles = makeStyles((theme: Theme) => {
             margin: theme.spacing(1)
         }
     }
-})
+});
+
+const validationSchema = yup.object().shape({
+    name: yup.string()
+        .required()
+        .max(255)
+        .label('Name'),
+    categories_id: yup.array()
+        .required()
+        .label('Categories')
+});
 
 interface FormProps {
     id?:string
@@ -35,16 +47,21 @@ export const Form: React.FC<FormProps> = ({id}) => {
         getValues,
         reset,
         watch,
-        setValue
+        setValue,
+        errors,
+        triggerValidation
     } = useForm<{name, categories_id}>({
+        validationSchema,
         defaultValues: {
             categories_id: []
         }
     });
-
+    
+    const snackbar = useSnackbar();
     const history = useHistory();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         (async () => {
@@ -78,32 +95,37 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     async function onSubmit(formData, event) {
 
-        console.log(formData);
+        setLoading(true);
 
         try{
-            let response;
 
-            if(!id){
-                response = await genreHttp.create(formData)
-            }else{
-                response = await genreHttp.update(id, formData);
-            }
-
-            console.log(response.data.data);
-
+            const response = !id
+            ? genreHttp.create(formData)
+            : genreHttp.update(genre?.id, formData);
+            const {data} = await response;
+            snackbar.enqueueSnackbar(
+                'Genre saved successfully',
+                {variant:"success"}
+            );
             setTimeout(() => {
                 if(event){
                     if(id){
-                        history.replace(`/genres/${response.data.data.id}/edit`)
+                        history.replace(`/genres/${data.data.id}/edit`)
                     }else{
-                        history.push(`/genres/${response.data.data.id}/edit`)
+                        history.push(`/genres/${data.data.id}/edit`)
                     }
                 }else{
                     history.push('/genres')
                 }
             });
         }catch (err) {
-            console.error(err);
+            console.log(err);
+            snackbar.enqueueSnackbar(
+                'Error trying to save genre',
+                {variant:"error"}
+            );
+        } finally {
+            setLoading(false);
         }
         
         
@@ -117,6 +139,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 fullWidth
                 variant={"outlined"}
                 inputRef={register}
+                error={errors.name !== undefined}
+                helperText={errors.name && errors.name.message}
+                InputLabelProps={{shrink: (getValues('name') !== undefined ? true : undefined) }}
+                disabled={loading}
             />
             <TextField
                 select
@@ -132,9 +158,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 SelectProps={{
                     multiple: true
                 }}
-
-                
+                error={errors.categories_id !== undefined}
+                helperText={errors.categories_id && errors.categories_id.message}
                 InputLabelProps={{shrink: true}}
+                disabled={loading}
             >
 
                 <MenuItem value="" disabled>
@@ -149,7 +176,15 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 }
             </TextField>
             <Box dir={'rtl'}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Save</Button>
+                <Button {...buttonProps} 
+                    onClick={() => 
+                        triggerValidation().then(isValid => {
+                            isValid && onSubmit(getValues(), null)
+                        })                    
+                    }
+                >
+                    Save
+                </Button>
                 <Button {...buttonProps} type="submit">Save and continue editing</Button>                
             </Box>
         </form>

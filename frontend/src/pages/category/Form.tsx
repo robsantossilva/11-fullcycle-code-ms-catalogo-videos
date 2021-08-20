@@ -7,6 +7,7 @@ import { useHistory } from 'react-router-dom';
 import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
+import { Category } from '../../util/models';
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -38,7 +39,8 @@ export const Form: React.FC<FormProps> = ({id}) => {
         reset,
         watch,
         setValue,
-        errors
+        errors,
+        triggerValidation
     } = useForm<{name, is_active}>({
         validationSchema,
         defaultValues: {
@@ -48,7 +50,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     const snackbar = useSnackbar();
     const history = useHistory();
-    const [category, setCategory] = useState<{id: string} | null>(null);
+    const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
     const buttonProps: ButtonProps = {
@@ -75,6 +77,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 
             } catch(err){
                 console.log(err);
+                snackbar.enqueueSnackbar(
+                    'Error trying to load category',
+                    {variant: 'error',}
+                )
             }
         })();
     }, []);
@@ -166,8 +172,11 @@ export const Form: React.FC<FormProps> = ({id}) => {
             <Box dir={'rtl'}>
                 <Button {...buttonProps} 
                     color={"primary"}
-
-                    onClick={() => onSubmit(getValues(), null)}
+                    onClick={() => 
+                        triggerValidation().then(isValid => {
+                            isValid && onSubmit(getValues(), null)
+                        })                    
+                    }
                 >
                     Save
                 </Button>
