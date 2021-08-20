@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\SerializeDateToISO8601;
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CastMember extends Model
 {
-    use SoftDeletes, Uuid;
+    use SoftDeletes, Uuid, SerializeDateToISO8601;
     protected $fillable = ['name', 'type'];
     protected   $dates = ['deleted_at'];
     public      $incrementing = false;

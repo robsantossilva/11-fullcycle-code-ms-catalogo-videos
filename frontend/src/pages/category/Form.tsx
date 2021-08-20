@@ -4,6 +4,10 @@ import { useForm } from 'react-hook-form';
 import categoryHttp from '../../util/http/category-http';
 import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import * as yup from '../../util/vendor/yup';
+import { useState } from 'react';
+import { useSnackbar } from 'notistack';
+import { Category } from '../../util/models';
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -11,7 +15,14 @@ const useStyles = makeStyles((theme: Theme) => {
             margin: theme.spacing(1)
         }
     }
-})
+});
+
+const validationSchema = yup.object().shape({
+    name: yup.string()
+        .required()
+        .max(255)
+        .label('Name')
+});
 
 interface FormProps {
     id?:string
@@ -21,75 +32,100 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     const classes = useStyles();
 
-    const buttonProps: ButtonProps = {
-        variant: "outlined",
-        className: classes.submit
-    }
-
     const { 
         register, 
         handleSubmit, 
         getValues,
         reset,
         watch,
-        setValue
-    } = useForm({
+        setValue,
+        errors,
+        triggerValidation
+    } = useForm<{name, is_active}>({
+        validationSchema,
         defaultValues: {
             is_active: true
         }
     });
 
+    const snackbar = useSnackbar();
     const history = useHistory();
+    const [category, setCategory] = useState<Category | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const buttonProps: ButtonProps = {
+        variant: "contained",
+        className: classes.submit,
+        color: 'secondary',
+        disabled: loading
+    }
 
     useEffect(() => {
         if(!id){
             return;
         }
+        setLoading(true);
         (async () => {
             try{
-                const {data} = await categoryHttp.get(id);
-                reset(data.data)
+                categoryHttp
+                    .get(id)
+                    .then(({data}) => {
+                        setCategory(data.data);
+                        reset(data.data)
+                    })
+                    .finally(() => setLoading(false));
+                
             } catch(err){
                 console.log(err);
+                snackbar.enqueueSnackbar(
+                    'Error trying to load category',
+                    {variant: 'error',}
+                )
             }
         })();
     }, []);
+
+    // useEffect(()=>{
+    //     snackbar.enqueueSnackbar('Hello World', {
+    //         variant:'success'
+    //     });
+    // },[]);
 
     useEffect(() => {
         register({name: "is_active"})
     }, [register]);
 
     async function onSubmit(formData, event) {
+        setLoading(true);
+        const response = !id
+            ? categoryHttp.create(formData)
+            : categoryHttp.update(category?.id, formData);
 
-        console.log(formData);
-
-        try{
-            let response;
-
-            if(!id){
-                response = await categoryHttp.create(formData)
-            }else{
-                response = await categoryHttp.update(id, formData);
-            }
-
-            console.log(response.data.data);
-
+        response.then((response) => {
+            snackbar.enqueueSnackbar(
+                'Category saved successfully',
+                {variant:"success"}
+            );
+            const {data} = response;
             setTimeout(() => {
                 if(event){
-                    if(id){
-                        history.replace(`/categories/${response.data.data.id}/edit`)
-                    }else{
-                        history.push(`/categories/${response.data.data.id}/edit`)
-                    }
+                    id
+                        ? history.replace(`/categories/${data.data.id}/edit`)
+                        : history.push(`/categories/${data.data.id}/edit`);
                 }else{
                     history.push('/categories')
                 }
             });
-        }catch (err) {
-            console.error(err);
-        }
-        
-        
+        })
+        .catch((error) => {
+            snackbar.enqueueSnackbar(
+                'Error trying to save category',
+                {variant:"error"}
+            );
+        })
+        .finally(() => {
+            setLoading(false);
+        });
     }
 
     return (
@@ -100,6 +136,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 fullWidth
                 variant={"outlined"}
                 inputRef={register}
+                error={errors.name !== undefined}
+                helperText={errors.name && errors.name.message}
+                InputLabelProps={{shrink: (getValues('name') !== undefined ? true : undefined) }}
+                disabled={loading}
             />
             <TextField
                 inputRef={register}
@@ -110,6 +150,8 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 fullWidth
                 variant={"outlined"}
                 margin={'normal'}
+                InputLabelProps={{shrink: (getValues('description') !== undefined ? true : undefined) }}
+                disabled={loading}
             />
             <FormControlLabel
                 //disabled={loading}
@@ -123,11 +165,21 @@ export const Form: React.FC<FormProps> = ({id}) => {
                         checked={watch('is_active')}
                     />
                 }
+                disabled={loading}
                 label={'Is Active?'}
                 labelPlacement={'end'}
             />
             <Box dir={'rtl'}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Save</Button>
+                <Button {...buttonProps} 
+                    color={"primary"}
+                    onClick={() => 
+                        triggerValidation().then(isValid => {
+                            isValid && onSubmit(getValues(), null)
+                        })                    
+                    }
+                >
+                    Save
+                </Button>
                 <Button {...buttonProps} type="submit">Save and continue editing</Button>                
             </Box>
         </form>

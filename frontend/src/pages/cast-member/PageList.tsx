@@ -12,9 +12,10 @@ interface ListProps {
 const PageList = (props: ListProps) => {
     return(
         <Page title="Cast Members List">
-            <Box dir={'rtl'}>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title="Add Cast Member"
+                    color={'secondary'}
                     size="small"
                     component={Link}
                     to="/cast-members/create"

@@ -17,3 +17,9 @@ export interface Genre extends Timestampable {
     is_active: number;
     categories: Category[];
 }
+
+export interface CastMember extends Timestampable {
+    readonly id: string;
+    name: string;
+    type: number;
+}

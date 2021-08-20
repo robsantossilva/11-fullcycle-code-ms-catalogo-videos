@@ -10,9 +10,11 @@
     "require": {
         "php": "^7.2",
         "bschmitt/laravel-amqp": "^2.0",
+        "chelout/laravel-relationship-events": "^1.4",
         "fideloper/proxy": "^4.0",
         "fruitcake/laravel-cors": "^2.0",
         "laravel/framework": "~6.18",
+        "laravel/helpers": "^1.4",
         "laravel/tinker": "^1.0",
         "laravel/ui": "^1.0",
         "superbalist/laravel-google-cloud-storage": "^2.2"

@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Traits\SerializeDateToISO8601;
 use App\Models\Traits\Uuid;
+use Chelout\RelationshipEvents\Concerns\HasBelongsToManyEvents;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Genre extends Model
 {
-    use SoftDeletes, Uuid;
+    use SoftDeletes, Uuid, SerializeDateToISO8601, HasBelongsToManyEvents;
 
     const RELATED_TABLES = [
         'categories'=>'categories_id'
@@ -20,7 +22,9 @@ class Genre extends Model
     public      $incrementing = false;
     protected   $keyType = 'string';
     protected   $casts = ['id'=>'string','is_active'=>'boolean'];
-
+    protected   $observables = [
+        'belongsToManyAttached'
+    ];
 
     public function categories() : BelongsToMany
     {
