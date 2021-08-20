@@ -8,6 +8,7 @@ import parseISO from 'date-fns/parseISO';
 import categoryHttp from '../../util/http/category-http';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
+import { BadgeNo, BadgeYes } from '../../components/Badge';
 
 
 const columnsDefinition: MUIDataTableColumn[] = [
@@ -29,7 +30,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
         label: "Is Active",
         options: {
             customBodyRender(value, tableMeta, updateValue){
-                return value ? <Chip label="Active" color="primary" /> : <Chip label="Inactive" color="secondary" />
+                return value ? <BadgeYes label={"Yes"}/> : <BadgeNo label={"No"} />
             }
         }
     },
