@@ -32,15 +32,6 @@ interface FormProps {
 }
 
 export const Form: React.FC<FormProps> = ({id}) => {
-
-    const classes = useStyles();
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary'
-    }
-
     const { 
         register, 
         handleSubmit, 
@@ -56,15 +47,24 @@ export const Form: React.FC<FormProps> = ({id}) => {
             categories_id: []
         }
     });
-    
+
+    const classes = useStyles();   
     const snackbar = useSnackbar();
     const history = useHistory();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const buttonProps: ButtonProps = {
+        variant: "contained",
+        className: classes.submit,
+        color: 'secondary',
+        disabled: loading
+    }
+
     useEffect(() => {
-        (async () => {
+        async function loadData() {
+            setLoading(true);
             const promises = [categoryHttp.list()];
             if (id) {
                 promises.push(genreHttp.get(id));
@@ -79,14 +79,20 @@ export const Form: React.FC<FormProps> = ({id}) => {
                         ...genreResponse.data.data,
                         categories_id
                     }
-                    //console.log(dataForm);
                     reset(dataForm);
                 }
             } catch (error) {
                 console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Error trying to save genre',
+                    {variant:"error"}
+                );
+            } finally {
+                setLoading(true);
             }
-        })();
-    }, [id, reset]); //[]
+        }
+        loadData();
+    }, []); //[]
 
 
     useEffect(() => {
@@ -94,15 +100,12 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     async function onSubmit(formData, event) {
-
         setLoading(true);
-
         try{
-
-            const response = !id
+            const http = !id
             ? genreHttp.create(formData)
             : genreHttp.update(genre?.id, formData);
-            const {data} = await response;
+            const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Genre saved successfully',
                 {variant:"success"}
@@ -127,8 +130,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         } finally {
             setLoading(false);
         }
-        
-        
     }
 
     return (

@@ -29,9 +29,6 @@ interface FormProps {
 }
 
 export const Form: React.FC<FormProps> = ({id}) => {
-
-    const classes = useStyles();
-
     const { 
         register, 
         handleSubmit, 
@@ -48,6 +45,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     });
 
+    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
     const [category, setCategory] = useState<Category | null>(null);
@@ -64,32 +62,24 @@ export const Form: React.FC<FormProps> = ({id}) => {
         if(!id){
             return;
         }
-        setLoading(true);
-        (async () => {
+        async function getCategory() {
+            setLoading(true);
             try{
-                categoryHttp
-                    .get(id)
-                    .then(({data}) => {
-                        setCategory(data.data);
-                        reset(data.data)
-                    })
-                    .finally(() => setLoading(false));
-                
+                const {data} = await categoryHttp.get(id);
+                setCategory(data.data);
+                reset(data.data)                
             } catch(err){
-                console.log(err);
+                console.error(err);
                 snackbar.enqueueSnackbar(
                     'Error trying to load category',
                     {variant: 'error',}
                 )
+            } finally {
+                setLoading(false);
             }
-        })();
+        }
+        getCategory();
     }, []);
-
-    // useEffect(()=>{
-    //     snackbar.enqueueSnackbar('Hello World', {
-    //         variant:'success'
-    //     });
-    // },[]);
 
     useEffect(() => {
         register({name: "is_active"})
@@ -97,16 +87,15 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     async function onSubmit(formData, event) {
         setLoading(true);
-        const response = !id
-            ? categoryHttp.create(formData)
-            : categoryHttp.update(category?.id, formData);
-
-        response.then((response) => {
+        try {
+            const http = !id
+                ? categoryHttp.create(formData)
+                : categoryHttp.update(category?.id, formData);
+            const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Category saved successfully',
                 {variant:"success"}
             );
-            const {data} = response;
             setTimeout(() => {
                 if(event){
                     id
@@ -116,16 +105,15 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     history.push('/categories')
                 }
             });
-        })
-        .catch((error) => {
+        } catch (error) {
+            console.error(error);
             snackbar.enqueueSnackbar(
                 'Error trying to save category',
                 {variant:"error"}
             );
-        })
-        .finally(() => {
+        } finally {
             setLoading(false);
-        });
+        }
     }
 
     return (
@@ -154,7 +142,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 disabled={loading}
             />
             <FormControlLabel
-                //disabled={loading}
+                disabled={loading}
                 control={
                     <Checkbox
                         name="is_active"
@@ -165,18 +153,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                         checked={watch('is_active')}
                     />
                 }
-                disabled={loading}
                 label={'Is Active?'}
                 labelPlacement={'end'}
             />
             <Box dir={'rtl'}>
-                <Button {...buttonProps} 
+                <Button 
                     color={"primary"}
-                    onClick={() => 
-                        triggerValidation().then(isValid => {
-                            isValid && onSubmit(getValues(), null)
-                        })                    
-                    }
+                    {...buttonProps} 
+                    onClick={() => triggerValidation().then(isValid => {isValid && onSubmit(getValues(), null)})}
                 >
                     Save
                 </Button>

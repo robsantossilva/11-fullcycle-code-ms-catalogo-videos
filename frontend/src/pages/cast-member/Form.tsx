@@ -33,14 +33,6 @@ interface FormProps {
 
 export const Form: React.FC<FormProps> = ({id}) => {
 
-    const classes = useStyles();
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary'
-    }
-
     const { 
         register, 
         handleSubmit, 
@@ -54,34 +46,40 @@ export const Form: React.FC<FormProps> = ({id}) => {
         validationSchema
     });
 
+    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
     const [castMember, setCastMember] = useState<CastMember| null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const buttonProps: ButtonProps = {
+        className: classes.submit,
+        color: 'secondary',
+        variant: "contained",
+        disabled: loading        
+    }
+
     useEffect(() => {
         if(!id){
             return;
         }
-        (async () => {
-
+        async function getCastMember() {
+            setLoading(true)
             try{
-                castMemberHttp
-                    .get(id)
-                    .then(({data}) => {
-                        setCastMember(data.data);
-                        reset(data.data)
-                    })
-                    .finally(() => setLoading(false));
-                
+                const {data} = await castMemberHttp.get(id)
+                setCastMember(data.data);
+                reset(data.data)                
             } catch(err){
-                console.log(err);
+                console.error(err);
                 snackbar.enqueueSnackbar(
                     'Error trying to load cast member',
                     {variant: 'error',}
                 )
+            } finally {
+                setLoading(false)
             }
-        })();
+        }
+        getCastMember();
     }, []);
 
     useEffect(() => {
@@ -90,11 +88,11 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     async function onSubmit(formData, event) {
         setLoading(true);
-        const response = !id
-            ? castMemberHttp.create(formData)
-            : castMemberHttp.update(castMember?.id, formData);
-
-        response.then(response => {
+        try {
+            const http = !id
+                ? castMemberHttp.create(formData)
+                : castMemberHttp.update(castMember?.id, formData);
+            const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Cast Member saved successfully',
                 {variant:"success"}
@@ -102,26 +100,23 @@ export const Form: React.FC<FormProps> = ({id}) => {
             setTimeout(() => {
                 if(event){
                     if(id){
-                        history.replace(`/cast-members/${response.data.data.id}/edit`)
+                        history.replace(`/cast-members/${data.data.id}/edit`)
                     }else{
-                        history.push(`/cast-members/${response.data.data.id}/edit`)
+                        history.push(`/cast-members/${data.data.id}/edit`)
                     }
                 }else{
                     history.push('/cast-members')
                 }
             });
-        })
-        .catch((error) => {
+        } catch (error) {
+            console.error(error);
             snackbar.enqueueSnackbar(
                 'Error trying to save cast member',
                 {variant:"error"}
             );
-        })
-        .finally(() => {
+        } finally {
             setLoading(false);
-        });
-                
-        
+        }
     }
 
     return (
