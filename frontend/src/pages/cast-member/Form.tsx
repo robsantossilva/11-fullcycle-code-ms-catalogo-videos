@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, ButtonProps, Checkbox, FormControl, FormControlLabel, FormHelperText, FormLabel, makeStyles, Radio, RadioGroup, TextField, Theme } from '@material-ui/core';
+import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { useEffect } from 'react';
@@ -8,14 +8,7 @@ import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { CastMember } from '../../util/models';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-});
+import SubmitActions from '../../components/SubmitActions';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -32,15 +25,7 @@ interface FormProps {
 }
 
 export const Form: React.FC<FormProps> = ({id}) => {
-
-    const classes = useStyles();
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary'
-    }
-
+    
     const { 
         register, 
         handleSubmit, 
@@ -57,31 +42,31 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const snackbar = useSnackbar();
     const history = useHistory();
     const [castMember, setCastMember] = useState<CastMember| null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);  
 
     useEffect(() => {
         if(!id){
             return;
         }
-        (async () => {
 
-            try{
-                castMemberHttp
-                    .get(id)
-                    .then(({data}) => {
-                        setCastMember(data.data);
-                        reset(data.data)
-                    })
-                    .finally(() => setLoading(false));
-                
-            } catch(err){
-                console.log(err);
+        async function getCastMember() {
+            setLoading(true);
+            try {
+                const {data} = await castMemberHttp.get<{data: CastMember}>(id);
+                setCastMember(data.data);
+                reset(data.data);
+            } catch (error) {
+                console.log(error);
                 snackbar.enqueueSnackbar(
                     'Error trying to load cast member',
                     {variant: 'error',}
                 )
+            } finally {
+                setLoading(false);
             }
-        })();
+        }
+
+        getCastMember();
     }, []);
 
     useEffect(() => {
@@ -90,11 +75,12 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     async function onSubmit(formData, event) {
         setLoading(true);
-        const response = !id
+        try {
+            const http = !castMember
             ? castMemberHttp.create(formData)
             : castMemberHttp.update(castMember?.id, formData);
 
-        response.then(response => {
+            const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Cast Member saved successfully',
                 {variant:"success"}
@@ -102,26 +88,24 @@ export const Form: React.FC<FormProps> = ({id}) => {
             setTimeout(() => {
                 if(event){
                     if(id){
-                        history.replace(`/cast-members/${response.data.data.id}/edit`)
+                        history.replace(`/cast-members/${data.data.id}/edit`)
                     }else{
-                        history.push(`/cast-members/${response.data.data.id}/edit`)
+                        history.push(`/cast-members/${data.data.id}/edit`)
                     }
                 }else{
                     history.push('/cast-members')
                 }
             });
-        })
-        .catch((error) => {
+
+        } catch (error) {
+            console.log(error);
             snackbar.enqueueSnackbar(
                 'Error trying to save cast member',
                 {variant:"error"}
             );
-        })
-        .finally(() => {
+        } finally {
             setLoading(false);
-        });
-                
-        
+        }
     }
 
     return (
@@ -157,18 +141,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     errors.type && <FormHelperText id="type-helper-text">{errors.type.message}</FormHelperText>
                 }
             </FormControl>
-            <Box dir={'rtl'}>
-                <Button {...buttonProps} 
-                    onClick={() => 
-                        triggerValidation().then(isValid => {
-                            isValid && onSubmit(getValues(), null)
-                        })                    
-                    }
-                >
-                    Save
-                </Button>
-                <Button {...buttonProps} type="submit">Save and continue editing</Button>                
-            </Box>
+            <SubmitActions 
+                disabledButtons={loading} 
+                handleSave={() => 
+                    triggerValidation().then(isValid => {
+                        isValid && onSubmit(getValues(), null)
+                    })  
+                }
+            />
         </form>
     );
 }

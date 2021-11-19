@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, ButtonProps, Checkbox, FormControlLabel, makeStyles, MenuItem, TextField, Theme } from '@material-ui/core';
+import { makeStyles, MenuItem, TextField, Theme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
@@ -8,6 +8,7 @@ import { useHistory } from 'react-router-dom';
 import { Category, Genre } from '../../util/models';
 import * as yup from 'yup';
 import { useSnackbar } from 'notistack';
+import SubmitActions from '../../components/SubmitActions';
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -33,14 +34,6 @@ interface FormProps {
 
 export const Form: React.FC<FormProps> = ({id}) => {
 
-    const classes = useStyles();
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary'
-    }
-
     const { 
         register, 
         handleSubmit, 
@@ -64,29 +57,41 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
+        
+        let isSubscribed = true;
         (async () => {
-            const promises = [categoryHttp.list()];
+            setLoading(true);
+            const promises = [categoryHttp.list({queryParams:{all:''}})];
             if (id) {
                 promises.push(genreHttp.get(id));
             }
             try {
                 const [categoriesResponse, genreResponse] = await Promise.all(promises);
-                setCategories(categoriesResponse.data.data);
-                if (id) {
-                    setGenre(genreResponse.data.data);
-                    const categories_id = genreResponse.data.data.categories.map(category => category.id);
-                    const dataForm = {
-                        ...genreResponse.data.data,
-                        categories_id
+                if(isSubscribed){
+                    setCategories(categoriesResponse.data.data);
+                    if (id) {
+                        setGenre(genreResponse.data.data);
+                        const categories_id = genreResponse.data.data.categories.map(category => category.id);
+                        const dataForm = {
+                            ...genreResponse.data.data,
+                            categories_id
+                        }
+                        //console.log(dataForm);
+                        reset(dataForm);
                     }
-                    //console.log(dataForm);
-                    reset(dataForm);
-                }
+                }                    
             } catch (error) {
                 console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Error trying to load genre',
+                    {variant: 'error',}
+                )
+            } finally {
+                setLoading(false);
             }
         })();
-    }, [id, reset]); //[]
+
+    }, []); //[]
 
 
     useEffect(() => {
@@ -175,18 +180,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     )
                 }
             </TextField>
-            <Box dir={'rtl'}>
-                <Button {...buttonProps} 
-                    onClick={() => 
-                        triggerValidation().then(isValid => {
-                            isValid && onSubmit(getValues(), null)
-                        })                    
-                    }
-                >
-                    Save
-                </Button>
-                <Button {...buttonProps} type="submit">Save and continue editing</Button>                
-            </Box>
+            <SubmitActions 
+                disabledButtons={loading} 
+                handleSave={() => 
+                    triggerValidation().then(isValid => {
+                        isValid && onSubmit(getValues(), null)
+                    })  
+                }
+            />
         </form>
     );
 }
