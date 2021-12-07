@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, ButtonProps, Checkbox, FormControlLabel, makeStyles, TextField, Theme } from '@material-ui/core';
+import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import categoryHttp from '../../util/http/category-http';
 import { useEffect } from 'react';
@@ -8,14 +8,8 @@ import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { Category } from '../../util/models';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-});
+import SubmitActions from '../../components/SubmitActions';
+import { DefaultForm } from '../../components/DefaultForm';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -29,6 +23,7 @@ interface FormProps {
 }
 
 export const Form: React.FC<FormProps> = ({id}) => {
+
     const { 
         register, 
         handleSubmit, 
@@ -51,25 +46,19 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary',
-        disabled: loading
-    }
-
     useEffect(() => {
         if(!id){
             return;
         }
-        async function getCategory() {
+
+        (async function getCategory() {
             setLoading(true);
-            try{
+            try {
                 const {data} = await categoryHttp.get(id);
                 setCategory(data.data);
-                reset(data.data)                
-            } catch(err){
-                console.error(err);
+                reset(data.data)
+            } catch (error) {
+                console.log(error);
                 snackbar.enqueueSnackbar(
                     'Error trying to load category',
                     {variant: 'error',}
@@ -77,10 +66,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
             } finally {
                 setLoading(false);
             }
-        }
-        getCategory();
-    }, []);
+        })();
 
+    }, []);
+        
     useEffect(() => {
         register({name: "is_active"})
     }, [register]);
@@ -88,14 +77,17 @@ export const Form: React.FC<FormProps> = ({id}) => {
     async function onSubmit(formData, event) {
         setLoading(true);
         try {
-            const http = !id
-                ? categoryHttp.create(formData)
-                : categoryHttp.update(category?.id, formData);
+            const http = !category
+            ? categoryHttp.create(formData)
+            : categoryHttp.update(category?.id, formData);
+
             const {data} = await http;
+
             snackbar.enqueueSnackbar(
                 'Category saved successfully',
                 {variant:"success"}
             );
+
             setTimeout(() => {
                 if(event){
                     id
@@ -105,6 +97,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     history.push('/categories')
                 }
             });
+          
         } catch (error) {
             console.error(error);
             snackbar.enqueueSnackbar(
@@ -117,7 +110,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs:12, md:6}} onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 name="name"
                 label="Name"
@@ -156,16 +149,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 label={'Is Active?'}
                 labelPlacement={'end'}
             />
-            <Box dir={'rtl'}>
-                <Button 
-                    color={"primary"}
-                    {...buttonProps} 
-                    onClick={() => triggerValidation().then(isValid => {isValid && onSubmit(getValues(), null)})}
-                >
-                    Save
-                </Button>
-                <Button {...buttonProps} type="submit">Save and continue editing</Button>                
-            </Box>
-        </form>
+            <SubmitActions 
+                disabledButtons={loading} 
+                handleSave={() => 
+                    triggerValidation().then(isValid => {
+                        isValid && onSubmit(getValues(), null)
+                    })  
+                }
+            />
+        </DefaultForm>
     );
 }

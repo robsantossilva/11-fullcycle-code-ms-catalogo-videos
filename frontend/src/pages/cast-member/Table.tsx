@@ -8,6 +8,8 @@ import parseISO from 'date-fns/parseISO';
 import { IconButton } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
+import { CastMember, ListResponse } from '../../util/models';
+import DefaultTable from '../../components/Table';
 
 const CastMemberTypeMap = {
     1: 'Director',
@@ -79,19 +81,21 @@ type TableProps = {
 
 const Table: React.FC = (props: TableProps) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<CastMember[]>([]);
 
     useEffect(() => {
-        httpVideo.get('cast_members').then(
-            response => {
-                setData(response.data.data)
-                console.log(response.data.data)
-            }
-        )
+        let isSubscribed = true;
+        (async function getCastMembers(){
+            const {data} = await httpVideo.get<ListResponse<CastMember>>('cast_members');
+            isSubscribed && setData(data.data);
+        })();
+        return () => {
+            isSubscribed = false;
+        }
     }, []);
 
     return (
-        <MUIDataTable 
+        <DefaultTable 
             title="Member List"
             columns={columnsDefinition} 
             data={data}

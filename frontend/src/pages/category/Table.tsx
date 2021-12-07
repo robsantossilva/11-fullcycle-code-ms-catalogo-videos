@@ -1,21 +1,24 @@
 import * as React from 'react';
-import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { Chip, IconButton } from '@material-ui/core';
+import { useEffect, useState, useRef, useReducer } from 'react';
+import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
 import categoryHttp from '../../util/http/category-http';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
 import { BadgeNo, BadgeYes } from '../../components/Badge';
+import { Category, ListResponse } from '../../util/models';
+import DefaultTable, { makeActionStyles, TableColumn } from '../../components/Table';
+import { useSnackbar } from 'notistack';
+import { FilterResetButton } from '../../components/Table/FilterResetButton';
+import reducer, { INITIAL_STATE, Creators } from '../../store/filter';
+import useFilter from '../../hooks/useFilter';
 
-
-const columnsDefinition: MUIDataTableColumn[] = [
+const columnsDefinition: TableColumn[] = [
     {
         name: 'id',
         label: 'ID',
-        //width: '30%',
+        width: '30%',
         options: {
             sort: false,
             filter: false
@@ -23,16 +26,21 @@ const columnsDefinition: MUIDataTableColumn[] = [
     },
     {
         name: "name",
-        label: "Name"
+        label: "Name",
+        width: '43%',
+        options: {
+            sortDirection: 'asc'
+        }
     },
     {
         name: "is_active",
-        label: "Is Active",
+        label: "Active?",
         options: {
             customBodyRender(value, tableMeta, updateValue){
                 return value ? <BadgeYes label={"Yes"}/> : <BadgeNo label={"No"} />
             }
-        }
+        },
+        width: '4%'
     },
     {
         name: "created_at",
@@ -41,7 +49,8 @@ const columnsDefinition: MUIDataTableColumn[] = [
             customBodyRender(value, tableMeta, updateValue){
                 return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
             }
-        }
+        },
+        width: '10%'
     },
     {
         name: "actions",
@@ -64,42 +73,112 @@ const columnsDefinition: MUIDataTableColumn[] = [
     }
 ];
 
-const data = [
-    {name: "Test1", is_active:true, created_at:"2021-06-15"},
-    {name: "Test1", is_active:false, created_at:"2021-06-16"},
-    {name: "Test1", is_active:true, created_at:"2021-06-17"}
-]
+const debounceTime = 300;
+const debouncedSearchTime = 300;
+const rowsPerPage = 15;
+const rowsPerPageOptions = [15, 25, 50];
+const Table: React.FC = () => {
 
-
-interface Category {
-    id: string;
-    name: string;
-    is_active: string;
-    created_at: string;
-}
-
-type TableProps = {
-
-};
-
-const Table: React.FC = (props: TableProps) => {
-
+    const snackbar = useSnackbar(); 
+    const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const {
+        columns,
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        dispatch,
+        totalRecords, 
+        setTotalRecords
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        rowsPerPage,
+        rowsPerPageOptions
+    });
 
     useEffect(() => {
-        categoryHttp.list<{data: Category[]}>().then(
-            ({data}) => {
+        subscribed.current = true;
+        filterManager.pushHistory();
+        getData();
+        return () => {
+            subscribed.current = false;
+        }
+    },[
+        filterManager.cleanSearchText(debouncedFilterState.search),
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order
+    ]);
+
+    async function getData() {
+        setLoading(true);
+        try{
+            const {data} = await categoryHttp.list<ListResponse<Category>>({
+                queryParams: {
+                    search: filterManager.cleanSearchText(filterState.search),
+                    page: filterState.pagination.page,
+                    per_page: filterState.pagination.per_page,
+                    sort: filterState.order.sort,
+                    dir: filterState.order.dir
+                }
+            });
+            if(subscribed.current){
                 setData(data.data);
+                setTotalRecords(data.meta.total);
+                // setfilterState((prevState => ({
+                //     ...prevState,
+                //     pagination: {
+                //         ...prevState.pagination,
+                //         total: data.meta.total
+                //     }
+                // })));
             }
-        )
-    }, []);
+        } catch (error) {
+            console.error(error);
+            
+            if(categoryHttp.isCancelledRequest(error)){
+                return;
+            }
+
+            snackbar.enqueueSnackbar(
+                'Error trying to save category',
+                {variant:"error"}
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
-        <MUIDataTable 
-            title="Category List"
-            columns={columnsDefinition} 
-            data={data}
-        />
+        <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length -1)}>
+            <DefaultTable 
+                title="Category List"
+                columns={columns} 
+                data={data}
+                loading={loading}
+                debouncedSearchTime={debouncedSearchTime}
+                options={{
+                    serverSide: true,
+                    searchText: filterState.search as any,
+                    page: filterState.pagination.page - 1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
+                    count: totalRecords,
+                    customToolbar: () => (
+                        <FilterResetButton 
+                            handleClick={ () => dispatch(Creators.setReset()) }
+                        />
+                    ),
+                    onSearchChange: (value) => filterManager.changeSearch(value),
+                    onChangePage: (page) => filterManager.changePage(page),
+                    onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+                    onColumnSortChange: (changedColumn: string, direction: string) =>
+                        filterManager.changeColumnSort(changedColumn, direction)
+                }}
+            />
+        </MuiThemeProvider>
     );
 }
 

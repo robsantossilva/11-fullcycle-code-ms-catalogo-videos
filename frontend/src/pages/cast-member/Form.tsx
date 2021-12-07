@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, ButtonProps, Checkbox, FormControl, FormControlLabel, FormHelperText, FormLabel, makeStyles, Radio, RadioGroup, TextField, Theme } from '@material-ui/core';
+import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { useEffect } from 'react';
@@ -8,14 +8,7 @@ import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { CastMember } from '../../util/models';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-});
+import SubmitActions from '../../components/SubmitActions';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -50,7 +43,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const snackbar = useSnackbar();
     const history = useHistory();
     const [castMember, setCastMember] = useState<CastMember| null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);  
 
     const buttonProps: ButtonProps = {
         className: classes.submit,
@@ -63,22 +56,24 @@ export const Form: React.FC<FormProps> = ({id}) => {
         if(!id){
             return;
         }
+
         async function getCastMember() {
-            setLoading(true)
-            try{
-                const {data} = await castMemberHttp.get(id)
+            setLoading(true);
+            try {
+                const {data} = await castMemberHttp.get<{data: CastMember}>(id);
                 setCastMember(data.data);
-                reset(data.data)                
-            } catch(err){
-                console.error(err);
+                reset(data.data);
+            } catch (error) {
+                console.log(error);
                 snackbar.enqueueSnackbar(
                     'Error trying to load cast member',
                     {variant: 'error',}
                 )
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
+
         getCastMember();
     }, []);
 
@@ -89,9 +84,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
     async function onSubmit(formData, event) {
         setLoading(true);
         try {
-            const http = !id
-                ? castMemberHttp.create(formData)
-                : castMemberHttp.update(castMember?.id, formData);
+            const http = !castMember
+            ? castMemberHttp.create(formData)
+            : castMemberHttp.update(castMember?.id, formData);
+
             const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Cast Member saved successfully',
@@ -108,8 +104,9 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     history.push('/cast-members')
                 }
             });
+
         } catch (error) {
-            console.error(error);
+            console.log(error);
             snackbar.enqueueSnackbar(
                 'Error trying to save cast member',
                 {variant:"error"}
@@ -152,18 +149,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     errors.type && <FormHelperText id="type-helper-text">{errors.type.message}</FormHelperText>
                 }
             </FormControl>
-            <Box dir={'rtl'}>
-                <Button {...buttonProps} 
-                    onClick={() => 
-                        triggerValidation().then(isValid => {
-                            isValid && onSubmit(getValues(), null)
-                        })                    
-                    }
-                >
-                    Save
-                </Button>
-                <Button {...buttonProps} type="submit">Save and continue editing</Button>                
-            </Box>
+            <SubmitActions 
+                disabledButtons={loading} 
+                handleSave={() => 
+                    triggerValidation().then(isValid => {
+                        isValid && onSubmit(getValues(), null)
+                    })  
+                }
+            />
         </form>
     );
 }

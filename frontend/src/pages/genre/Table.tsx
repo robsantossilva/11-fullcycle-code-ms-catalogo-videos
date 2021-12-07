@@ -8,6 +8,8 @@ import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
+import { Genre, ListResponse } from '../../util/models';
+import DefaultTable from '../../components/Table';
 
 interface Category {
     name: string
@@ -85,18 +87,21 @@ type TableProps = {
 
 const Table: React.FC = (props: TableProps) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<Genre[]>([]);
 
     useEffect(() => {
-        httpVideo.get('genres').then(
-            response => {
-                setData(response.data.data)
-            }
-        )
+        let isSubscribed = true;
+        (async function getGenres() {
+            const {data} = await httpVideo.get<ListResponse<Genre>>('genres');
+            isSubscribed && setData(data.data);
+        })();
+        return () => {
+            isSubscribed = false;
+        }
     }, []);
 
     return (
-        <MUIDataTable 
+        <DefaultTable 
             title="Category List"
             columns={columnsDefinition} 
             data={data}
