@@ -49,12 +49,20 @@ export const Form: React.FC<FormProps> = ({id}) => {
             categories_id: []
         }
     });
-    
+
+    const classes = useStyles();   
     const snackbar = useSnackbar();
     const history = useHistory();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const buttonProps: ButtonProps = {
+        variant: "contained",
+        className: classes.submit,
+        color: 'secondary',
+        disabled: loading
+    }
 
     useEffect(() => {
         
@@ -62,6 +70,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         (async () => {
             setLoading(true);
             const promises = [categoryHttp.list({queryParams:{all:''}})];
+
             if (id) {
                 promises.push(genreHttp.get(id));
             }
@@ -99,15 +108,12 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     async function onSubmit(formData, event) {
-
         setLoading(true);
-
         try{
-
-            const response = !id
+            const http = !id
             ? genreHttp.create(formData)
             : genreHttp.update(genre?.id, formData);
-            const {data} = await response;
+            const {data} = await http;
             snackbar.enqueueSnackbar(
                 'Genre saved successfully',
                 {variant:"success"}
@@ -132,8 +138,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         } finally {
             setLoading(false);
         }
-        
-        
     }
 
     return (
