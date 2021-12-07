@@ -1,6 +1,5 @@
 import * as React from 'react';
-import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useReducer } from 'react';
 import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -11,17 +10,9 @@ import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 import DefaultTable, { makeActionStyles, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
-
-interface Pagination {
-    page: number;
-    total: number;
-    per_page: number;
-}
-
-interface SearchState {
-    search: string;
-    pagination: Pagination;
-}
+import { FilterResetButton } from '../../components/Table/FilterResetButton';
+import reducer, { INITIAL_STATE, Creators } from '../../store/filter';
+import useFilter from '../../hooks/useFilter';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -36,7 +27,10 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "name",
         label: "Name",
-        width: '43%'
+        width: '43%',
+        options: {
+            sortDirection: 'asc'
+        }
     },
     {
         name: "is_active",
@@ -79,31 +73,43 @@ const columnsDefinition: TableColumn[] = [
     }
 ];
 
+const debounceTime = 300;
+const debouncedSearchTime = 300;
+const rowsPerPage = 15;
+const rowsPerPageOptions = [15, 25, 50];
 const Table: React.FC = () => {
 
     const snackbar = useSnackbar(); 
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [searchState, setSearchState] = useState<SearchState>({
-        search: '',
-        pagination: {
-            page: 1,
-            total: 0,
-            per_page: 10,
-        }
+    const {
+        columns,
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        dispatch,
+        totalRecords, 
+        setTotalRecords
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        rowsPerPage,
+        rowsPerPageOptions
     });
 
     useEffect(() => {
         subscribed.current = true;
+        filterManager.pushHistory();
         getData();
         return () => {
             subscribed.current = false;
         }
     },[
-        searchState.search,
-        searchState.pagination.page,
-        searchState.pagination.per_page
+        filterManager.cleanSearchText(debouncedFilterState.search),
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order
     ]);
 
     async function getData() {
@@ -111,23 +117,31 @@ const Table: React.FC = () => {
         try{
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
-                    search: searchState.search,
-                    page: searchState.pagination.page,
-                    per_page: searchState.pagination.per_page
+                    search: filterManager.cleanSearchText(filterState.search),
+                    page: filterState.pagination.page,
+                    per_page: filterState.pagination.per_page,
+                    sort: filterState.order.sort,
+                    dir: filterState.order.dir
                 }
             });
             if(subscribed.current){
                 setData(data.data);
-                setSearchState((prevState => ({
-                    ...prevState,
-                    pagination: {
-                        ...prevState.pagination,
-                        total: data.meta.total
-                    }
-                })));
+                setTotalRecords(data.meta.total);
+                // setfilterState((prevState => ({
+                //     ...prevState,
+                //     pagination: {
+                //         ...prevState.pagination,
+                //         total: data.meta.total
+                //     }
+                // })));
             }
         } catch (error) {
             console.error(error);
+            
+            if(categoryHttp.isCancelledRequest(error)){
+                return;
+            }
+
             snackbar.enqueueSnackbar(
                 'Error trying to save category',
                 {variant:"error"}
@@ -141,39 +155,27 @@ const Table: React.FC = () => {
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length -1)}>
             <DefaultTable 
                 title="Category List"
-                columns={columnsDefinition} 
+                columns={columns} 
                 data={data}
                 loading={loading}
+                debouncedSearchTime={debouncedSearchTime}
                 options={{
                     serverSide: true,
-                    searchText: searchState.search,
-                    page: searchState.pagination.page - 1,
-                    rowsPerPage: searchState.pagination.per_page,
-                    count: searchState.pagination.total,
-                    onSearchChange: (value) => setSearchState((prevState => 
-                        ({
-                            ...prevState,
-                            search: value as any
-                        })
-                    )),
-                    onChangePage: (page) => setSearchState((prevState => 
-                        ({
-                            ...prevState,
-                            pagination: {
-                                ...prevState.pagination,
-                                page: page + 1
-                            }
-                        })
-                    )),
-                    onChangeRowsPerPage: (perPage) => setSearchState((prevState => 
-                        ({
-                            ...prevState,
-                            pagination: {
-                                ...prevState.pagination,
-                                per_page: perPage
-                            }
-                        })
-                    )),
+                    searchText: filterState.search as any,
+                    page: filterState.pagination.page - 1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
+                    count: totalRecords,
+                    customToolbar: () => (
+                        <FilterResetButton 
+                            handleClick={ () => dispatch(Creators.setReset()) }
+                        />
+                    ),
+                    onSearchChange: (value) => filterManager.changeSearch(value),
+                    onChangePage: (page) => filterManager.changePage(page),
+                    onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+                    onColumnSortChange: (changedColumn: string, direction: string) =>
+                        filterManager.changeColumnSort(changedColumn, direction)
                 }}
             />
         </MuiThemeProvider>
