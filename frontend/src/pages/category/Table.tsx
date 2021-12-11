@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState, useRef, useReducer } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -8,10 +8,10 @@ import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
-import DefaultTable, { makeActionStyles, TableColumn } from '../../components/Table';
+import DefaultTable, { makeActionStyles, MuiDataTableRefComponent, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
-import reducer, { INITIAL_STATE, Creators } from '../../store/filter';
+import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
 
 const columnsDefinition: TableColumn[] = [
@@ -29,13 +29,16 @@ const columnsDefinition: TableColumn[] = [
         label: "Name",
         width: '43%',
         options: {
-            sortDirection: 'asc'
+            filter: false
         }
     },
     {
         name: "is_active",
         label: "Active?",
         options: {
+            filterOptions: {
+                names: ['Yes', 'No']
+            },
             customBodyRender(value, tableMeta, updateValue){
                 return value ? <BadgeYes label={"Yes"}/> : <BadgeNo label={"No"} />
             }
@@ -46,6 +49,7 @@ const columnsDefinition: TableColumn[] = [
         name: "created_at",
         label: "Created At",
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue){
                 return <span>{format(parseISO(value), 'dd/MM/yyyy')}</span>
             }
@@ -83,6 +87,8 @@ const Table: React.FC = () => {
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
+    
     const {
         columns,
         filterManager,
@@ -95,7 +101,8 @@ const Table: React.FC = () => {
         columns: columnsDefinition,
         debounceTime: debounceTime,
         rowsPerPage,
-        rowsPerPageOptions
+        rowsPerPageOptions,
+        tableRef,
     });
 
     useEffect(() => {
@@ -143,7 +150,7 @@ const Table: React.FC = () => {
             }
 
             snackbar.enqueueSnackbar(
-                'Error trying to save category',
+                'Error trying to list categories',
                 {variant:"error"}
             );
         } finally {
@@ -159,6 +166,7 @@ const Table: React.FC = () => {
                 data={data}
                 loading={loading}
                 debouncedSearchTime={debouncedSearchTime}
+                ref={tableRef}
                 options={{
                     serverSide: true,
                     searchText: filterState.search as any,
@@ -168,7 +176,7 @@ const Table: React.FC = () => {
                     count: totalRecords,
                     customToolbar: () => (
                         <FilterResetButton 
-                            handleClick={ () => dispatch(Creators.setReset()) }
+                            handleClick={ () => filterManager.resetFilter() }
                         />
                     ),
                     onSearchChange: (value) => filterManager.changeSearch(value),

@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Models\Genre;
 use App\Observers\SyncModelObserver;
 use Illuminate\Support\ServiceProvider;
+use DB;
+use Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,5 +34,13 @@ class AppServiceProvider extends ServiceProvider
             Genre::observe(SyncModelObserver::class);
             CastMember::observe(SyncModelObserver::class);
         }
+
+        // DB::listen(function($query) {
+        //     Log::info(
+        //         $query->sql,
+        //         $query->bindings,
+        //         $query->time
+        //     );
+        // });
     }
 }
