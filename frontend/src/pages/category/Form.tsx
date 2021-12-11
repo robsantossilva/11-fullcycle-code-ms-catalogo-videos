@@ -40,6 +40,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     });
 
+    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
     const [category, setCategory] = useState<Category | null>(null);
@@ -68,7 +69,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         })();
 
     }, []);
-
+        
     useEffect(() => {
         register({name: "is_active"})
     }, [register]);
@@ -86,7 +87,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Category saved successfully',
                 {variant:"success"}
             );
-            
+
             setTimeout(() => {
                 if(event){
                     id
@@ -96,7 +97,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     history.push('/categories')
                 }
             });
-
+          
         } catch (error) {
             console.error(error);
             snackbar.enqueueSnackbar(
@@ -134,7 +135,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 disabled={loading}
             />
             <FormControlLabel
-                //disabled={loading}
+                disabled={loading}
                 control={
                     <Checkbox
                         name="is_active"
@@ -145,7 +146,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                         checked={watch('is_active')}
                     />
                 }
-                disabled={loading}
                 label={'Is Active?'}
                 labelPlacement={'end'}
             />
