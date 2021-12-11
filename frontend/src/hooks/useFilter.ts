@@ -7,6 +7,7 @@ import { useHistory } from "react-router";
 import { History } from 'history';
 import { isEqual } from 'lodash';
 import * as yup from '../util/vendor/yup';
+import { MuiDataTableRefComponent } from "../components/Table";
 
 interface FilterManagerOptions {
     columns: MUIDataTableColumn[];
@@ -14,7 +15,15 @@ interface FilterManagerOptions {
     rowsPerPageOptions: number[];
     debounceTime: number;
     history: History;
+    tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
+    extraFilter?: ExtraFilter;
 }
+
+interface ExtraFilter {
+    getStateFromURL: (queryParams: URLSearchParams) => any;
+    formatSearchParams: (debouncedState: FilterState) => any;
+    createValidationSchema: () => any;
+  }
 
 interface UseFilterOptions extends Omit<FilterManagerOptions, 'history'> {
 
@@ -56,19 +65,25 @@ export class FilterManager {
     rowsPerPage: number;
     rowsPerPageOptions: number[];
     history: History;
+    tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
+    extraFilter?: ExtraFilter;
 
     constructor(options: FilterManagerOptions) {
         const {
             columns,
             rowsPerPage,
             rowsPerPageOptions,
-            history
+            history,
+            tableRef,
+            extraFilter
         } = options;
 
         this.columns = columns;
         this.rowsPerPage = rowsPerPage;
         this.rowsPerPageOptions = rowsPerPageOptions;
         this.history = history;
+        this.tableRef = tableRef;
+        this.extraFilter = extraFilter;
         this.createValidationSchema();
     }
 
@@ -91,6 +106,13 @@ export class FilterManager {
                 dir: direction.includes("desc") ? "desc" : "asc",
             })
         );
+        // this.tableRef.current.changePage(0);
+        // this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+    }
+
+    changeExtraFilter(data) {
+        //{type: 'Diretor'}
+        this.dispatch(Creators.updateExtraFilter(data));
     }
 
     applyOrderInColumns() {
@@ -113,6 +135,12 @@ export class FilterManager {
             newText = text.value
         }
         return newText;
+    }
+
+    resetFilter(){
+        this.dispatch(Creators.setReset({state: INITIAL_STATE}))
+        // this.tableRef.current.changePage(0);
+        // this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
     }
 
     replaceHistory(){
@@ -156,7 +184,7 @@ export class FilterManager {
                 sort: this.state.order.sort,
                 dir: this.state.order.dir,
             }),
-            //...(extraFilter && extraFilter.formatSearchParams(state)),
+            ...(this.extraFilter && this.extraFilter.formatSearchParams(this.state)),
         };
     }
 
@@ -171,7 +199,12 @@ export class FilterManager {
             order: {
                 sort: queryParams.get("sort"),
                 dir: queryParams.get("dir"),
-            }
+            },
+            ...(
+                this.extraFilter && {
+                    extraFilter: this.extraFilter.getStateFromURL(queryParams)
+                }
+            )
         })
     }
 
@@ -219,7 +252,12 @@ export class FilterManager {
                     : value
                 )
                 .default(null),
-            })
+            }),
+            ...(
+                this.extraFilter && {
+                    extraFilter: this.extraFilter.createValidationSchema()
+                }
+            )
         });
     }
 }
