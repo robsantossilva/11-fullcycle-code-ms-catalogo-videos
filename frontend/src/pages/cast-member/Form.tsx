@@ -39,18 +39,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
         validationSchema
     });
 
-    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
     const [castMember, setCastMember] = useState<CastMember| null>(null);
     const [loading, setLoading] = useState<boolean>(false);  
-
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: "contained",
-        disabled: loading        
-    }
 
     useEffect(() => {
         if(!id){
@@ -159,4 +151,8 @@ export const Form: React.FC<FormProps> = ({id}) => {
             />
         </form>
     );
+}
+
+function useStyles() {
+    throw new Error('Function not implemented.');
 }
