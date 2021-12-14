@@ -38,6 +38,7 @@ export default function useFilter(options: UseFilterOptions) {
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
     filterManager.state = filterState;
+    filterManager.debouncedState = debouncedFilterState;
     filterManager.dispatch = dispatch;
     //filterManager.applyOrderInColumns();
 
@@ -60,6 +61,7 @@ export class FilterManager {
 
     schema
     state: FilterState = null as any;
+    debouncedState = null as any;
     dispatch: Dispatch<FilterActions> = null as any;
     columns: MUIDataTableColumn[];
     rowsPerPage: number;
@@ -87,6 +89,11 @@ export class FilterManager {
         this.createValidationSchema();
     }
 
+    private resetTablePagination(){
+        this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+        this.tableRef.current.changePage(0);
+    }
+
     changeSearch(value) {
         this.dispatch(Creators.setSearch({ search: value }));
     }
@@ -106,8 +113,7 @@ export class FilterManager {
                 dir: direction.includes("desc") ? "desc" : "asc",
             })
         );
-        // this.tableRef.current.changePage(0);
-        // this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+        this.resetTablePagination();
     }
 
     changeExtraFilter(data) {
@@ -138,16 +144,19 @@ export class FilterManager {
     }
 
     resetFilter(){
+        const INITIAL_STATE = {
+            ...this.schema.cast({}),
+            search: { value: null, update: true },
+        };
         this.dispatch(Creators.setReset({state: INITIAL_STATE}))
-        // this.tableRef.current.changePage(0);
-        // this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+        this.resetTablePagination();
     }
 
     replaceHistory(){
         this.history.replace({
             pathname: this.history.location.pathname,
             search: "?" + new URLSearchParams(this.formatSearchParams()),
-            state: this.state
+            state: this.debouncedState
         })
     }
 
@@ -157,13 +166,13 @@ export class FilterManager {
             pathname: this.history.location.pathname,
             search: "?" + new URLSearchParams(this.formatSearchParams()),
             state: {
-                ...this.state,
+                ...this.debouncedState,
                 search: this.cleanSearchText(this.state.search)
             }
         };
 
         const oldState = this.history.location.state;
-        const nextState = this.state;
+        const nextState = this.debouncedState;
         if(isEqual(oldState, nextState)){
             console.log('is Equal');
             return;
@@ -172,19 +181,19 @@ export class FilterManager {
     }
 
     private formatSearchParams() {
-        const search = this.cleanSearchText(this.state.search);
+        const search = this.cleanSearchText(this.debouncedState.search);
 
         return {
             ...(search && search !== "" && { search: search }),
-            ...(this.state.pagination.page !== 1 && { page: this.state.pagination.page }),
-            ...(this.state.pagination.per_page !== 15 && {
-                per_page: this.state.pagination.per_page,
+            ...(this.debouncedState.pagination.page !== 1 && { page: this.debouncedState.pagination.page }),
+            ...(this.debouncedState.pagination.per_page !== 15 && {
+                per_page: this.debouncedState.pagination.per_page,
             }),
-            ...(this.state.order.sort && {
-                sort: this.state.order.sort,
-                dir: this.state.order.dir,
+            ...(this.debouncedState.order.sort && {
+                sort: this.debouncedState.order.sort,
+                dir: this.debouncedState.order.dir,
             }),
-            ...(this.extraFilter && this.extraFilter.formatSearchParams(this.state)),
+            ...(this.extraFilter && this.extraFilter.formatSearchParams(this.debouncedState)),
         };
     }
 

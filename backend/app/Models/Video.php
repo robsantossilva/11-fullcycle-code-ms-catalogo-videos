@@ -22,7 +22,8 @@ class Video extends Model
 
     const RELATED_TABLES = [
         'categories' => 'categories_id',
-        'genres' => 'genres_id'
+        'genres' => 'genres_id',
+        'castMembers' => 'cast_members_id'
     ];
 
     protected   $fillable = [
@@ -93,15 +94,15 @@ class Video extends Model
             //$this->load(array_keys(self::relatedTables()))->refresh();
             if($saved){
                 $this->uploadFiles($files);
-            }            
+            }
             \DB::commit();
             if($saved && count($files)){
                 $this->deleteOldFiles();
-            } 
+            }
             return $saved;
 
         } catch (\Exception $e) {
-            
+
             $this->deleteFiles($files);
 
             \DB::rollBack();
@@ -114,11 +115,11 @@ class Video extends Model
         return self::RELATED_TABLES;
     }
 
-    public static function handleRelations($obj, array $attributes) {
+    public static function handleRelations(Video $obj, array $attributes) {
         foreach(self::relatedTables() as $table => $field){
             if(isset($attributes[$field])){
                 $obj->$table()->sync($attributes[$field]);
-            }            
+            }
         }
     }
 
@@ -135,9 +136,13 @@ class Video extends Model
         return $this->belongsToMany(Genre::class)->withTrashed();
     }
 
+    public function castMembers(): BelongsToMany {
+        return $this->belongsToMany(CastMember::class)->withTrashed();
+    }
+
     protected function uploadDir()
     {
-       return $this->id; 
+       return $this->id;
     }
 
     public function getThumbFileUrlAttribute()

@@ -40,7 +40,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     });
 
-    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
     const [category, setCategory] = useState<Category | null>(null);
