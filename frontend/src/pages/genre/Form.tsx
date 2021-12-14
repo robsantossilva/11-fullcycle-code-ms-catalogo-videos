@@ -57,13 +57,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        className: classes.submit,
-        color: 'secondary',
-        disabled: loading
-    }
-
     useEffect(() => {
         
         let isSubscribed = true;
