@@ -18,7 +18,7 @@ const PageList = (props: ListProps) => {
                     color={'secondary'}
                     size="small"
                     component={Link}
-                    to="/categories/create"
+                    to="/videos/create"
                 >
                     <AddIcon />
                 </Fab>

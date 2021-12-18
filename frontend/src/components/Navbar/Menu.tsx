@@ -8,7 +8,8 @@ const listRoutes = {
     'dashboard': 'Dashboard',
     'categories.list': 'Categories',
     'cast_members.list': 'Cast Members',
-    'genres.list': 'Genres'
+    'genres.list': 'Genres',
+    'videos.list': 'Videos'
 };
 const menuRoutes = routes.filter(route => Object.keys(listRoutes).includes(route.name));
 
