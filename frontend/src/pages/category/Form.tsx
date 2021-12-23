@@ -50,12 +50,16 @@ export const Form: React.FC<FormProps> = ({id}) => {
             return;
         }
 
+        let isSubscribed = true;
+
         (async function getCategory() {
             setLoading(true);
             try {
                 const {data} = await categoryHttp.get(id);
-                setCategory(data.data);
-                reset(data.data)
+                if(isSubscribed){
+                    setCategory(data.data);
+                    reset(data.data)
+                }                 
             } catch (error) {
                 console.log(error);
                 snackbar.enqueueSnackbar(
@@ -66,6 +70,10 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 setLoading(false);
             }
         })();
+
+        return () => {
+            isSubscribed = false;
+        }
 
     }, []);
         

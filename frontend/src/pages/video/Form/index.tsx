@@ -12,6 +12,8 @@ import { DefaultForm } from '../../../components/DefaultForm';
 import { Video, VideoFileFieldsMap } from '../../../util/models';
 import UploadField from './UploadField';
 import RatingField from './RatingField';
+import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import genreHttp from '../../../util/http/genre-http';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -185,8 +187,17 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     }
 
+    const fetchOptions = (searchText) => genreHttp.list({
+        queryParams: {
+            search: searchText, all: ""
+        }
+    }).then(({data}) => data.data);
+
     return (
-        <DefaultForm GridItemProps={{xs:12}} onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm 
+            GridItemProps={{xs:12}} 
+            onSubmit={handleSubmit(onSubmit)}
+        >
             {console.log(errors)}
             <Grid container spacing={5}>
                 <Grid item xs={12} md={6}>
@@ -249,7 +260,13 @@ export const Form: React.FC<FormProps> = ({id}) => {
                             />
                         </Grid>
                     </Grid>
-                    Elenco<br/>Generos e categorias<br/>
+                    Elenco<br/>
+                    <AsyncAutocomplete 
+                        fetchOptions={fetchOptions}
+                        TextFieldProps={{
+                            label: 'Gêrero'
+                        }}
+                    />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
