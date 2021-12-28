@@ -14,6 +14,8 @@ import UploadField from './UploadField';
 import RatingField from './RatingField';
 import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
 import genreHttp from '../../../util/http/genre-http';
+import GridSelected from '../../../components/GridSelected';
+import GridSelectedItem from '../../../components/GridSelectedItem';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -263,10 +265,19 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     Elenco<br/>
                     <AsyncAutocomplete 
                         fetchOptions={fetchOptions}
+                        AutocompleteProps={{
+                            freeSolo: false,
+                            getOptionLabel: option => option.name
+                        }}
                         TextFieldProps={{
                             label: 'Gêrero'
                         }}
                     />
+                    <GridSelected>
+                        <GridSelectedItem onDelete={ () => {} } xs={6}>
+                            <Typography noWrap={true}>Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 </Typography>
+                        </GridSelectedItem>
+                    </GridSelected>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
