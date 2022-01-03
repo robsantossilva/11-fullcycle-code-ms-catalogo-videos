@@ -1,26 +1,26 @@
 import * as React from 'react';
-import { Autocomplete, AutocompleteProps } from '@material-ui/lab';
+import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
 import { CircularProgress, InputAdornment, TextField, TextFieldProps } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce/lib';
 import { useSnackbar } from 'notistack';
 
 interface AsyncAutocompleteProps {
-    fetchOptions: (searchText) => Promise<any>
-    TextFieldProps?: TextFieldProps
-    AutocompleteProps?: Omit<AutocompleteProps<any>, 'renderInput'>
+    fetchOptions: (searchText) => Promise<any>;
+    debounceTime?: number;
+    TextFieldProps?: TextFieldProps;
+    AutocompleteProps?: Omit<AutocompleteProps<any>, 'renderInput'> & UseAutocompleteSingleProps<any>;
 }
  
 const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props: AsyncAutocompleteProps) => {
 
-    const {AutocompleteProps} = props;
+    const {AutocompleteProps, debounceTime = 300} = props;
     const {freeSolo = false,  onOpen, onClose, onInputChange } = AutocompleteProps as any;
     const [open, setOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [debouncedSearchText] = useDebounce(searchText, debounceTime);
     const [loading, setLoading] = useState(false);
     const [options, setOptions] = useState([]);
-
-    const [debauncedSearchText] = useDebounce(searchText, 300);
 
     const snackbar = useSnackbar()
 
@@ -76,34 +76,29 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props: AsyncAutocom
     }, [open])
 
     useEffect(() => {
-        if(!open || searchText === "" && freeSolo) {
+        if(!open || debouncedSearchText === "" && freeSolo) {
             return;
         }
         
         let isSubscribed = true;
-        (async function getCategory() {
+        (async function getData() {
             setLoading(true);
             try {
-                const data = await props.fetchOptions(searchText);
+                const data = await props.fetchOptions(debouncedSearchText);
                 if(isSubscribed){
+                    console.log('catmembers', data)
                     setOptions(data);
                 }                 
-            } catch (error) {
-                console.log(error);
-                snackbar.enqueueSnackbar(
-                    'Não foi possivel carregar as informações',
-                    {variant: 'error',}
-                )
             } finally {
                 setLoading(false);
             }
         })();
-
+        
         return () => {
             isSubscribed = false;
         }
 
-    }, [freeSolo ? searchText : open]);
+    }, [freeSolo ? debouncedSearchText : open]);
 
     return (
         <Autocomplete {...autocompleteProps} />

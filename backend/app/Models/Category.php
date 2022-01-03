@@ -13,21 +13,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Category extends Model
 {
     use SoftDeletes, Uuid, SerializeDateToISO8601, Filterable;
-    protected   $fillable = ['name','description','is_active'];
+    protected   $fillable = ['name', 'description', 'is_active'];
     protected   $dates = ['deleted_at'];
     public      $incrementing = false;
     protected   $keyType = 'string';
     protected   $casts = [
-        'id'=>'string',
-        'is_active'=>'boolean'
+        'id' => 'string',
+        'is_active' => 'boolean'
     ];
 
-    public function genres() : BelongsToMany
+    public function genres(): BelongsToMany
     {
-        return $this->belongsToMany(Genre::class);
+        return $this->belongsToMany(Genre::class)->withTrashed();
     }
 
-    public function modelFilter() {
+    public function modelFilter()
+    {
         return $this->provideFilter(CategoryFilter::class);
     }
 }

@@ -5,7 +5,6 @@ import { Form } from './Form';
 
 const PageForm = () => {
     const {id} = useParams<{id}>();
-    console.log(id);
     return (
         <Page title={!id  ? 'Create video' : 'Edit video'}>
             <Form id={id || ""} />

@@ -7,12 +7,13 @@ import categoryHttp from '../../util/http/category-http';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
 import { BadgeNo, BadgeYes } from '../../components/Badge';
-import { Category, ListResponse } from '../../util/models';
+import { Category, Genre, ListResponse } from '../../util/models';
 import DefaultTable, { makeActionStyles, MuiDataTableRefComponent, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
+import videoHttp from '../../util/http/video-http';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -25,25 +26,42 @@ const columnsDefinition: TableColumn[] = [
         }
     },
     {
-        name: "name",
-        label: "Name",
+        name: "title",
+        label: "Titulo",
         width: '43%',
         options: {
             filter: false
         }
     },
     {
-        name: "is_active",
-        label: "Active?",
+        name: "genres",
+        label: "Gêneros",
+        width: '20%',
         options: {
+            filterType: 'multiselect',
             filterOptions: {
-                names: ['Yes', 'No']
+                names: []
             },
-            customBodyRender(value, tableMeta, updateValue){
-                return value ? <BadgeYes label={"Yes"}/> : <BadgeNo label={"No"} />
+            customBodyRender(value: Genre[], tableMeta, updateValue){
+                const genres = value.map((e:Genre, i:Number) => e.name).join(', ');
+                return genres;
             }
-        },
-        width: '4%'
+        }
+    },
+    {
+        name: "categories",
+        label: "Categories",
+        width: '20%',
+        options: {
+            filterType: 'multiselect',
+            filterOptions: {
+                names: []
+            },
+            customBodyRender(value: Category[], tableMeta, updateValue){
+                const categories = value.map((e:Category, i:Number) => e.name).join(', ');
+                return categories;
+            }
+        }
     },
     {
         name: "created_at",
@@ -67,7 +85,7 @@ const columnsDefinition: TableColumn[] = [
                     <IconButton
                         color={'secondary'}
                         component={Link}
-                        to={`/categories/${tableMeta.rowData[0]}/edit`}
+                        to={`/videos/${tableMeta.rowData[0]}/edit`}
                     >
                         <EditIcon/>
                     </IconButton>
@@ -122,7 +140,7 @@ const Table: React.FC = () => {
     async function getData() {
         setLoading(true);
         try{
-            const {data} = await categoryHttp.list<ListResponse<Category>>({
+            const {data} = await videoHttp.list<ListResponse<Category>>({
                 queryParams: {
                     search: filterManager.cleanSearchText(filterState.search),
                     page: filterState.pagination.page,

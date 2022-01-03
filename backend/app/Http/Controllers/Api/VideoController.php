@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 class VideoController extends BasicCrudController
 {
     private $rules;
+    private $loadGenreCategories = false;
 
     public function __construct()
     {
@@ -110,8 +111,18 @@ class VideoController extends BasicCrudController
         return VideoResource::class;
     }
 
-    // protected function queryBuilder(): Builder
-    // {
-    //     return parent::queryBuilder()->with(['genres.categories']);
-    // }
+    public function show($id) //GET
+    {
+        $this->loadGenreCategories = true;
+        return parent::show($id);
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        $queryBuilder =  parent::queryBuilder();
+        if ($this->loadGenreCategories) {
+            $queryBuilder->with(['genres.categories']);
+        }
+        return $queryBuilder;
+    }
 }

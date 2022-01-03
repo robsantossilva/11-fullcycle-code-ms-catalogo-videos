@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Card, CardContent, Checkbox, FormControlLabel, Grid, makeStyles, TextField, Theme, Typography, useMediaQuery, useTheme } from '@material-ui/core';
+import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, TextField, Theme, Typography, useMediaQuery, useTheme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import videoHttp from '../../../util/http/video-http';
 import { useEffect } from 'react';
@@ -12,10 +12,9 @@ import { DefaultForm } from '../../../components/DefaultForm';
 import { Video, VideoFileFieldsMap } from '../../../util/models';
 import UploadField from './UploadField';
 import RatingField from './RatingField';
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
-import genreHttp from '../../../util/http/genre-http';
-import GridSelected from '../../../components/GridSelected';
-import GridSelectedItem from '../../../components/GridSelectedItem';
+import GenreField from './GenreField';
+import CategoryField from './CategoryField';
+import CastMemberField from './CastMemberField';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -43,26 +42,26 @@ const validationSchema = yup.object().shape({
         .min(1),
     rating: yup.string()
         .label('Classificação')
+        .required(),
+    cast_members: yup.array()
+        .label('Elenco')
+        .required(),
+    genres: yup.array()
+        .label('Gêneros')
         .required()
-    // cast_members: yup.array()
-    //     .label('Elenco')
-    //     .required(),
-    // genres: yup.array()
-    //     .label('Gêneros')
-    //     .required()
-    //     .test({
-    //         message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada',
-    //         test(value) { //array genres [{name, categories: []}]
-    //             return value.every(
-    //                 v => v.categories.filter(
-    //                     cat => this.parent.categories.map(c => c.id).includes(cat.id)
-    //                 ).length !== 0
-    //             );
-    //         }
-    //     }),
-    // categories: yup.array()
-    //     .label('Categorias')
-    //     .required(),
+        // .test({
+        //     message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada',
+        //     test(value) { //array genres [{name, categories: []}]
+        //         return value.every(
+        //             v => v.categories.filter(
+        //                 cat => this.parent.categories.map(c => c.id).includes(cat.id)
+        //             ).length !== 0
+        //         );
+        //     }
+        // }),
+    ,categories: yup.array()
+        .label('Categorias')
+        .required(),
 });
 
 interface FormProps {
@@ -83,7 +82,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         watch,
         setValue,
         errors,
-        triggerValidation
+        triggerValidation,
     } = useForm<{
         title,
         description,
@@ -125,13 +124,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     useEffect(() => {
+
         if(!id){
             return;
         }
 
         let isSubscribed = true;
         
-        (async function getCategory() {
+        (async function getData() {
             setLoading(true);
             try {
                 const {data} = await videoHttp.get(id);
@@ -189,18 +189,11 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     }
 
-    const fetchOptions = (searchText) => genreHttp.list({
-        queryParams: {
-            search: searchText, all: ""
-        }
-    }).then(({data}) => data.data);
-
     return (
         <DefaultForm 
             GridItemProps={{xs:12}} 
             onSubmit={handleSubmit(onSubmit)}
         >
-            {console.log(errors)}
             <Grid container spacing={5}>
                 <Grid item xs={12} md={6}>
 
@@ -262,22 +255,47 @@ export const Form: React.FC<FormProps> = ({id}) => {
                             />
                         </Grid>
                     </Grid>
-                    Elenco<br/>
-                    <AsyncAutocomplete 
-                        fetchOptions={fetchOptions}
-                        AutocompleteProps={{
-                            freeSolo: false,
-                            getOptionLabel: option => option.name
-                        }}
-                        TextFieldProps={{
-                            label: 'Gêrero'
-                        }}
-                    />
-                    <GridSelected>
-                        <GridSelectedItem onDelete={ () => {} } xs={6}>
-                            <Typography noWrap={true}>Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 Gênero 1 </Typography>
-                        </GridSelectedItem>
-                    </GridSelected>
+                    
+                    <Grid container>
+                        <Grid item xs={12}>
+                            <CastMemberField 
+                                castMembers={watch('cast_members')} 
+                                setCastMembers={(value) => setValue('cast_members', value, true)} 
+                                error={errors.cast_members}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <GenreField 
+                                genres={watch('genres')}
+                                setGenres={(value) => setValue('genres', value, true)}
+                                categories={watch('categories')}
+                                setCategories={(value) => setValue('categories', value, true)}
+                                error={errors.genres}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <CategoryField 
+                                categories={watch('categories')}
+                                setCategories={(value) => setValue('categories', value, true)}
+                                genres={watch('genres')}
+                                error={errors.categories}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormHelperText>
+                                Escolha os gêneros do vídeo
+                            </FormHelperText>
+                            <FormHelperText>
+                                Escolha pelo menos uma categoria de cada gênero
+                            </FormHelperText>
+                        </Grid>
+                    </Grid>
+                    
                 </Grid>
 
                 <Grid item xs={12} md={6}>
@@ -350,6 +368,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
             </Grid>
 
             <SubmitActions 
+                
                 disabledButtons={loading} 
                 handleSave={() => 
                     triggerValidation().then(isValid => {
