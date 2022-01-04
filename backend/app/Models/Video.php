@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\ModelFilters\VideoFilter;
 use App\Models\Traits\SerializeDateToISO8601;
 use App\Models\Traits\UploadFiles;
 use App\Models\Traits\Uuid;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Video extends Model
 {
-    use SoftDeletes, Uuid, UploadFiles, SerializeDateToISO8601;
+    use SoftDeletes, Uuid, UploadFiles, SerializeDateToISO8601, Filterable;
 
     const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
 
@@ -92,15 +94,14 @@ class Video extends Model
             $saved = parent::update($attributes, $options);
             static::handleRelations($this, $attributes);
             //$this->load(array_keys(self::relatedTables()))->refresh();
-            if($saved){
+            if ($saved) {
                 $this->uploadFiles($files);
             }
             \DB::commit();
-            if($saved && count($files)){
+            if ($saved && count($files)) {
                 $this->deleteOldFiles();
             }
             return $saved;
-
         } catch (\Exception $e) {
 
             $this->deleteFiles($files);
@@ -110,14 +111,15 @@ class Video extends Model
         }
     }
 
-    protected static function relatedTables() : array
+    protected static function relatedTables(): array
     {
         return self::RELATED_TABLES;
     }
 
-    public static function handleRelations(Video $obj, array $attributes) {
-        foreach(self::relatedTables() as $table => $field){
-            if(isset($attributes[$field])){
+    public static function handleRelations(Video $obj, array $attributes)
+    {
+        foreach (self::relatedTables() as $table => $field) {
+            if (isset($attributes[$field])) {
                 $obj->$table()->sync($attributes[$field]);
             }
         }
@@ -136,13 +138,14 @@ class Video extends Model
         return $this->belongsToMany(Genre::class)->withTrashed();
     }
 
-    public function castMembers(): BelongsToMany {
+    public function castMembers(): BelongsToMany
+    {
         return $this->belongsToMany(CastMember::class)->withTrashed();
     }
 
     protected function uploadDir()
     {
-       return $this->id;
+        return $this->id;
     }
 
     public function getThumbFileUrlAttribute()
@@ -150,18 +153,23 @@ class Video extends Model
         return $this->thumb_file ? $this->getFileUrl($this->thumb_file) : null;
     }
 
-    public function getBannerFileUrlAttribute($value=null)
+    public function getBannerFileUrlAttribute($value = null)
     {
         return $this->banner_file ? $this->getFileUrl($this->banner_file) : null;
     }
 
-    public function getTrailerFileUrlAttribute($value=null)
+    public function getTrailerFileUrlAttribute($value = null)
     {
         return $this->trailer_file ? $this->getFileUrl($this->trailer_file) : null;
     }
 
-    public function getVideoFileUrlAttribute($value=null)
+    public function getVideoFileUrlAttribute($value = null)
     {
         return $this->video_file ? $this->getFileUrl($this->video_file) : null;
+    }
+
+    public function modelFilter()
+    {
+        return $this->provideFilter(VideoFilter::class);
     }
 }
