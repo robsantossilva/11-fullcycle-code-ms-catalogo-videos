@@ -15,6 +15,7 @@ import RatingField from './RatingField';
 import GenreField from './GenreField';
 import CategoryField from './CategoryField';
 import CastMemberField from './CastMemberField';
+import { omit } from 'lodash';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -49,16 +50,17 @@ const validationSchema = yup.object().shape({
     genres: yup.array()
         .label('Gêneros')
         .required()
-        // .test({
-        //     message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada',
-        //     test(value) { //array genres [{name, categories: []}]
-        //         return value.every(
-        //             v => v.categories.filter(
-        //                 cat => this.parent.categories.map(c => c.id).includes(cat.id)
-        //             ).length !== 0
-        //         );
-        //     }
-        // }),
+        .test({
+            message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada',
+            test(value) { //array genres [{name, categories: []}]
+                var genres = value as any;
+                return genres.every(
+                    v => v.categories.filter(
+                        cat => this.parent.categories.map(c => c.id).includes(cat.id)
+                    ).length !== 0
+                );
+            }
+        })
     ,categories: yup.array()
         .label('Categorias')
         .required(),
@@ -106,7 +108,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     const snackbar = useSnackbar();
     const history = useHistory();
-    const [category, setVideo] = useState<Video | null>(null);
+    const [video, setVideo] = useState<Video | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const theme = useTheme();
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
@@ -156,10 +158,19 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     async function onSubmit(formData, event) {
         setLoading(true);
+
+        const sendData = omit(
+            formData,
+            [...fileFields, 'cast_members', 'genres', 'categories']
+        );
+        sendData['cast_members_id'] = formData['cast_members'].map(cast_member => cast_member.id);
+        sendData['categories_id'] = formData['categories'].map(category => category.id);
+        sendData['genres_id'] = formData['genres'].map(genre => genre.id);
+
         try {
-            const http = !category
-            ? videoHttp.create(formData)
-            : videoHttp.update(category?.id, formData);
+            const http = !video
+            ? videoHttp.create(sendData)
+            : videoHttp.update(video.id, sendData);
 
             const {data} = await http;
 
@@ -174,7 +185,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                         ? history.replace(`/videos/${data.data.id}/edit`)
                         : history.push(`/videos/${data.data.id}/edit`);
                 }else{
-                    history.push('/categories')
+                    history.push('/videos')
                 }
             });
           
