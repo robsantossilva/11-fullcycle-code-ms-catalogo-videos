@@ -36,7 +36,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "genres",
         label: "Gêneros",
-        width: '20%',
+        width: '12%',
         options: {
             filterType: 'multiselect',
             filterOptions: {
@@ -51,7 +51,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "categories",
         label: "Categories",
-        width: '20%',
+        width: '12%',
         options: {
             filterType: 'multiselect',
             filterOptions: {
