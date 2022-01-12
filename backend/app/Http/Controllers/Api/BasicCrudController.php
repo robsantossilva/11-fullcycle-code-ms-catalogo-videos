@@ -27,7 +27,7 @@ abstract class BasicCrudController extends Controller
 
     protected abstract function ruleUpdate();
 
-    protected abstract function relatedTables() : array ;
+    protected abstract function relatedTables(): array;
 
     protected abstract function resource();
 
@@ -38,7 +38,7 @@ abstract class BasicCrudController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)//GET
+    public function index(Request $request) //GET
     {
 
         $perPage = (int) $request->get('per_page', $this->defaultPerPage);
@@ -46,7 +46,7 @@ abstract class BasicCrudController extends Controller
 
         $query = $this->queryBuilder();
 
-        if($hasFilter){
+        if ($hasFilter) {
             $query = $query->filter($request->all());
         }
 
@@ -68,7 +68,7 @@ abstract class BasicCrudController extends Controller
         $validatedData = $this->validate($request, $this->ruleStore());
         /** @var Video $obj */
 
-        if($this->relatedTables()){
+        if ($this->relatedTables()) {
             $self = $this;
             $obj = \DB::transaction(function () use ($request, $validatedData, $self) {
                 $obj = $this->queryBuilder()->create($validatedData);
@@ -99,7 +99,7 @@ abstract class BasicCrudController extends Controller
         {
             $obj = $this->findOrFail($id)->load(array_keys($this->relatedTables()));
         }else{*/
-            $obj = $this->findOrFail($id);
+        $obj = $this->findOrFail($id);
         //}
 
         $resource = $this->resource();
@@ -113,7 +113,7 @@ abstract class BasicCrudController extends Controller
         $obj = $this->findOrFail($id);
         $validatedData = $this->validate($request, $this->ruleStore());
 
-        if($this->relatedTables()){
+        if ($this->relatedTables()) {
             $self = $this;
             $obj = \DB::transaction(function ()  use ($obj, $request, $validatedData, $self) {
                 $obj->update($validatedData);
@@ -135,16 +135,40 @@ abstract class BasicCrudController extends Controller
     {
         $obj = $this->findOrFail($id);
         $obj->delete();
-        return response()->noContent();//204 - No Content
+        return response()->noContent(); //204 - No Content
     }
 
-    protected function handleRelations($obj, Request $request) {
-        foreach($this->relatedTables() as $table => $field){
+    public function destroyCollection(Request $request)
+    {
+        $data = $this->validateIds($request);
+        $this->model()::WhereIn('id', $data['ids'])->delete();
+        return response()->noContent();
+    }
+
+    protected function validateIds(Request $request)
+    {
+        $model = $this->model();
+        $ids = explode(',', $request->get('ids'));
+        $validator = \Validator::make(
+            [
+                'ids' => $ids
+            ],
+            [
+                'ids' => 'required|exists:' . (new $model)->getTable() . ',id'
+            ]
+        );
+        return $validator->validate();
+    }
+
+    protected function handleRelations($obj, Request $request)
+    {
+        foreach ($this->relatedTables() as $table => $field) {
             $obj->$table()->sync($request->get($field));
         }
     }
 
-    protected function queryBuilder(): Builder{
+    protected function queryBuilder(): Builder
+    {
         return $this->model()::query();
     }
 }

@@ -14,6 +14,8 @@ import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
 import videoHttp from '../../util/http/video-http';
+import DeleteDialog from '../../components/DeleteDialog';
+import useDeleteCollection from '../../hooks/useDeleteCollection';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -105,6 +107,7 @@ const Table: React.FC = () => {
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
     
     const {
@@ -142,23 +145,19 @@ const Table: React.FC = () => {
         try{
             const {data} = await videoHttp.list<ListResponse<Category>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir
+                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.sort,
+                    dir: debouncedFilterState.order.dir
                 }
             });
             if(subscribed.current){
                 setData(data.data);
                 setTotalRecords(data.meta.total);
-                // setfilterState((prevState => ({
-                //     ...prevState,
-                //     pagination: {
-                //         ...prevState.pagination,
-                //         total: data.meta.total
-                //     }
-                // })));
+                if(openDeleteDialog){
+                    setOpenDeleteDialog(false);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -176,8 +175,46 @@ const Table: React.FC = () => {
         }
     }
 
+
+    function deleteRows(confirmed: boolean) {
+        if (!confirmed) {
+            setOpenDeleteDialog(false);
+            return;
+        }
+        const ids = rowsToDelete
+            .data
+            .map(value => data[value.index].id)
+            .join(',');
+        videoHttp
+            .deleteCollection({ids})
+            .then(response => {
+                snackbar.enqueueSnackbar(
+                    'Registros excluídos com sucesso',
+                    {variant: 'success'}
+                );
+                if(
+                    rowsToDelete.data.length === filterState.pagination.per_page
+                    && filterState.pagination.page > 1
+                ){
+                    const page = filterState.pagination.page - 2;
+                    filterManager.changePage(page);
+                }else{
+                    getData();
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Não foi possível excluir os registros',
+                    {variant: 'error',}
+                )
+            })
+    }
+
+
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length -1)}>
+            <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
             <DefaultTable 
                 title="Category List"
                 columns={columns} 
@@ -201,7 +238,11 @@ const Table: React.FC = () => {
                     onChangePage: (page) => filterManager.changePage(page),
                     onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
                     onColumnSortChange: (changedColumn: string, direction: string) =>
-                        filterManager.changeColumnSort(changedColumn, direction)
+                        filterManager.changeColumnSort(changedColumn, direction),
+                    onRowsDelete: (rowsDeleted) => {
+                        setRowsToDelete(rowsDeleted as any);
+                        return false;
+                    },
                 }}
             />
         </MuiThemeProvider>

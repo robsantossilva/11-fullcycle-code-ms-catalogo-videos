@@ -19,9 +19,23 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 
 Route::group(['namespace' => 'Api'], function () {
-    $exceptCreateAndEdit = ['except'=>['create','edit']];
-    Route::resource('categories', 'CategoryController',$exceptCreateAndEdit);
-    Route::resource('genres', 'GenreController',$exceptCreateAndEdit);
-    Route::resource('cast_members', 'CastMemberController',$exceptCreateAndEdit);
-    Route::resource('videos', 'VideoController',$exceptCreateAndEdit);
+
+    $uris = [
+        'categories' => 'CategoryController',
+        'genres' => 'GenreController',
+        'cast_members' => 'CastMemberController',
+        'videos' => 'VideoController',
+    ];
+
+    $exceptCreateAndEdit = ['except' => ['create', 'edit']];
+
+    foreach ($uris as $route => $class) {
+        Route::resource($route, $class, $exceptCreateAndEdit);
+        Route::delete($route, $class . '@destroyCollection');
+    }
+
+    // Route::resource('categories', 'CategoryController',$exceptCreateAndEdit);
+    // Route::resource('genres', 'GenreController',$exceptCreateAndEdit);
+    // Route::resource('cast_members', 'CastMemberController',$exceptCreateAndEdit);
+    // Route::resource('videos', 'VideoController',$exceptCreateAndEdit);
 });

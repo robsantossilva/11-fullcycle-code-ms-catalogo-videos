@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, TextField, Theme, Typography, useMediaQuery, useTheme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import videoHttp from '../../../util/http/video-http';
-import { createRef, MutableRefObject, useEffect, useRef } from 'react';
+import { createRef, MutableRefObject, useContext, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from '../../../util/vendor/yup';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import { omit, zipObject } from 'lodash';
 import { InputFileComponent } from '../../../components/InputFile';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
+import LoadingContext from '../../../components/loading/LoadingContext';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -130,6 +131,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
+    const testLoading = useContext(LoadingContext);
 
     useEffect(() => {
         [
