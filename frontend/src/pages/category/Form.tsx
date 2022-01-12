@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import categoryHttp from '../../util/http/category-http';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
@@ -10,6 +10,7 @@ import { useSnackbar } from 'notistack';
 import { Category } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import { DefaultForm } from '../../components/DefaultForm';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -43,7 +44,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const snackbar = useSnackbar();
     const history = useHistory();
     const [category, setCategory] = useState<Category | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
 
     useEffect(() => {
         if(!id){
@@ -53,7 +54,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         let isSubscribed = true;
 
         (async function getCategory() {
-            setLoading(true);
             try {
                 const {data} = await categoryHttp.get(id);
                 if(isSubscribed){
@@ -66,8 +66,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     'Error trying to load category',
                     {variant: 'error',}
                 )
-            } finally {
-                setLoading(false);
             }
         })();
 
@@ -82,7 +80,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     async function onSubmit(formData, event) {
-        setLoading(true);
         try {
             const http = !category
             ? categoryHttp.create(formData)
@@ -111,8 +108,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Error trying to save category',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

@@ -122,7 +122,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const snackbar = useSnackbar();
     const history = useHistory();
     const [video, setVideo] = useState<Video | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
     const theme = useTheme();
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
     const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
@@ -153,7 +153,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         let isSubscribed = true;
         
         (async function getData() {
-            setLoading(true);
             try {
                 const {data} = await videoHttp.get(id);
                 if(isSubscribed){
@@ -166,8 +165,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     'Error trying to load video',
                     {variant: 'error',}
                 )
-            } finally {
-                setLoading(false);
             }
         })();
         return () => {
@@ -184,7 +181,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         sendData['categories_id'] = formData['categories'].map(category => category.id);
         sendData['genres_id'] = formData['genres'].map(genre => genre.id);
 
-        setLoading(true);
         try {
             const http = !video
             ? videoHttp.create(sendData)
@@ -213,8 +209,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Error trying to save video',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

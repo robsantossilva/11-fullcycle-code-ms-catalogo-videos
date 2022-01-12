@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import genreHttp from "../../util/http/genre-http";
 import { Chip, IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
@@ -13,6 +13,7 @@ import * as yup from '../../util/vendor/yup';
 import useFilter from '../../hooks/useFilter';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import categoryHttp from '../../util/http/category-http';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 interface Category {
     name: string
@@ -128,7 +129,7 @@ const Table = () => {
     const snackbar = useSnackbar();
     const subscribed = useRef(true)
     const [data, setData] = useState<Genre[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
     const [categories, setCategories] = useState<Category[]>()
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
 
@@ -198,7 +199,6 @@ const Table = () => {
     ]);
 
     async function getData() {
-        setLoading(true);
         try {
             const {data} = await genreHttp.list<ListResponse<Genre>>({
                 queryParams: {
@@ -229,8 +229,6 @@ const Table = () => {
                 'Error trying to list genres',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -16,6 +16,7 @@ import useFilter from '../../hooks/useFilter';
 import videoHttp from '../../util/http/video-http';
 import DeleteDialog from '../../components/DeleteDialog';
 import useDeleteCollection from '../../hooks/useDeleteCollection';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -106,7 +107,7 @@ const Table: React.FC = () => {
     const snackbar = useSnackbar(); 
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
     const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
     
@@ -141,7 +142,6 @@ const Table: React.FC = () => {
     ]);
 
     async function getData() {
-        setLoading(true);
         try{
             const {data} = await videoHttp.list<ListResponse<Category>>({
                 queryParams: {
@@ -170,8 +170,6 @@ const Table: React.FC = () => {
                 'Error trying to list categories',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 
