@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -13,6 +13,7 @@ import { useSnackbar } from 'notistack';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -86,7 +87,7 @@ const Table: React.FC = () => {
     const snackbar = useSnackbar(); 
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
     
     const {
@@ -120,7 +121,6 @@ const Table: React.FC = () => {
     ]);
 
     async function getData() {
-        setLoading(true);
         try{
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
@@ -153,8 +153,6 @@ const Table: React.FC = () => {
                 'Error trying to list categories',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

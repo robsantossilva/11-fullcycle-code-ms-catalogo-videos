@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, TextField, Theme, Typography, useMediaQuery, useTheme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import videoHttp from '../../../util/http/video-http';
-import { createRef, MutableRefObject, useEffect, useRef } from 'react';
+import { createRef, MutableRefObject, useContext, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from '../../../util/vendor/yup';
 import { useState } from 'react';
@@ -17,6 +17,8 @@ import CategoryField, { CategoryFieldComponent } from './CategoryField';
 import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import { omit, zipObject } from 'lodash';
 import { InputFileComponent } from '../../../components/InputFile';
+import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
+import LoadingContext from '../../../components/loading/LoadingContext';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -93,6 +95,8 @@ export const Form: React.FC<FormProps> = ({id}) => {
         setValue,
         errors,
         triggerValidation,
+        formState,
+
     } = useForm<{
         title,
         description,
@@ -113,11 +117,12 @@ export const Form: React.FC<FormProps> = ({id}) => {
             opened: false,
         }
     });
+    useSnackbarFormError(formState.submitCount, errors);
 
     const snackbar = useSnackbar();
     const history = useHistory();
     const [video, setVideo] = useState<Video | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
     const theme = useTheme();
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
     const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
@@ -126,7 +131,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
-
+    const testLoading = useContext(LoadingContext);
 
     useEffect(() => {
         [
@@ -148,7 +153,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         let isSubscribed = true;
         
         (async function getData() {
-            setLoading(true);
             try {
                 const {data} = await videoHttp.get(id);
                 if(isSubscribed){
@@ -161,8 +165,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     'Error trying to load video',
                     {variant: 'error',}
                 )
-            } finally {
-                setLoading(false);
             }
         })();
         return () => {
@@ -179,7 +181,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         sendData['categories_id'] = formData['categories'].map(category => category.id);
         sendData['genres_id'] = formData['genres'].map(genre => genre.id);
 
-        setLoading(true);
         try {
             const http = !video
             ? videoHttp.create(sendData)
@@ -208,8 +209,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Error trying to save video',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

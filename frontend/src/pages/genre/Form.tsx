@@ -3,12 +3,13 @@ import { makeStyles, MenuItem, TextField, Theme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Category, Genre } from '../../util/models';
 import * as yup from 'yup';
 import { useSnackbar } from 'notistack';
 import SubmitActions from '../../components/SubmitActions';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
@@ -55,13 +56,12 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const history = useHistory();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
 
     useEffect(() => {
         
         let isSubscribed = true;
         (async () => {
-            setLoading(true);
             const promises = [categoryHttp.list({queryParams:{all:''}})];
 
             if (id) {
@@ -88,8 +88,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     'Error trying to load genre',
                     {variant: 'error',}
                 )
-            } finally {
-                setLoading(false);
             }
         })();
 
@@ -101,7 +99,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     async function onSubmit(formData, event) {
-        setLoading(true);
         try{
             const http = !id
             ? genreHttp.create(formData)
@@ -128,8 +125,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Error trying to save genre',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 

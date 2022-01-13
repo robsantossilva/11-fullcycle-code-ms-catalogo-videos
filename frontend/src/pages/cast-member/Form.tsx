@@ -2,13 +2,14 @@ import * as React from 'react';
 import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import castMemberHttp from '../../util/http/cast-member-http';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from '../../util/vendor/yup';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { CastMember } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -42,7 +43,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const snackbar = useSnackbar();
     const history = useHistory();
     const [castMember, setCastMember] = useState<CastMember| null>(null);
-    const [loading, setLoading] = useState<boolean>(false);  
+    const loading = useContext(LoadingContext)
 
     useEffect(() => {
         if(!id){
@@ -50,7 +51,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
 
         async function getCastMember() {
-            setLoading(true);
             try {
                 const {data} = await castMemberHttp.get<{data: CastMember}>(id);
                 setCastMember(data.data);
@@ -61,8 +61,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                     'Error trying to load cast member',
                     {variant: 'error',}
                 )
-            } finally {
-                setLoading(false);
             }
         }
 
@@ -74,7 +72,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     async function onSubmit(formData, event) {
-        setLoading(true);
         try {
             const http = !castMember
             ? castMemberHttp.create(formData)
@@ -103,8 +100,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 'Error trying to save cast member',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -151,8 +146,4 @@ export const Form: React.FC<FormProps> = ({id}) => {
             />
         </form>
     );
-}
-
-function useStyles() {
-    throw new Error('Function not implemented.');
 }

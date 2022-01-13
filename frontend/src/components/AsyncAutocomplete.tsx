@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
-import { CircularProgress, InputAdornment, TextField, TextFieldProps } from '@material-ui/core';
+import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { RefAttributes, useEffect, useImperativeHandle, useState } from 'react';
 import { useDebounce } from 'use-debounce/lib';
-import { useSnackbar } from 'notistack';
 
 interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent> {
     fetchOptions: (searchText) => Promise<any>;
@@ -26,8 +25,6 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
     const [debouncedSearchText] = useDebounce(searchText, debounceTime);
     const [loading, setLoading] = useState(false);
     const [options, setOptions] = useState([]);
-
-    const snackbar = useSnackbar()
 
     const textFieldProps: TextFieldProps = {
         margin: 'normal',

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import castMemberHttp from "../../util/http/cast-member-http";
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -15,6 +15,7 @@ import { Creators, INITIAL_STATE } from '../../store/filter';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import * as yup from '../../util/vendor/yup';
 import { invert } from 'lodash';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const castMemberNames = Object.values(CastMemberTypeMap);
 
@@ -117,7 +118,7 @@ const Table = () => {
     const snackbar = useSnackbar();
     const subscribed = useRef(true)
     const [data, setData] = useState<CastMember[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext)
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
 
     const {
@@ -152,7 +153,7 @@ const Table = () => {
     // }
 
     async function getData() {
-        setLoading(true);
+
         try {
             const {data} = await castMemberHttp.list<ListResponse<CastMember>>({
                 queryParams: {
@@ -182,8 +183,6 @@ const Table = () => {
                 'Error trying to list cast members',
                 {variant:"error"}
             );
-        } finally {
-            setLoading(false);
         }
     }
 
