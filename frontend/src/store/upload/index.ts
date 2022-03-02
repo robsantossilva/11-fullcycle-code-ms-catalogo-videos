@@ -4,17 +4,15 @@ import update from 'immutability-helper';
 
 // Criando Action Types e Creators
 export const {Types, Creators} = createActions<{
-    ADD_UPLOAD: string
+    ADD_UPLOAD: string,
+    REMOVE_UPLOAD: string
 }, {
-    addUpload(payload: Typings.AddUploadAction['payload']): Typings.AddUploadAction
+    addUpload(payload: Typings.AddUploadAction['payload']): Typings.AddUploadAction,
+    removeUpload(payload: Typings.RemoveUploadAction['payload']): Typings.RemoveUploadAction
 }>
 ({
-    setSearch: ['payload'],
-    setPage: ['payload'],
-    setPerPage: ['payload'],
-    setOrder: ['payload'],
-    setReset: ['payload'],
-    updateExtraFilter: ['payload'],
+    addUpload: ['payload'],
+    removeUpload: ['payload']
 });
 
 // Definindo State Inicial
@@ -61,6 +59,18 @@ function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typi
             }
         ]
     };
+}
+
+function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction): Typings.State {
+    const uploads = state.uploads.filter(upload => upload.video.id !== action.payload.id);
+    
+    if (uploads.length === state.uploads.length) {
+        return state;
+    }
+    
+    return {
+        uploads
+    }
 }
 
 function findIndexUpload(state: Typings.State, id: string){

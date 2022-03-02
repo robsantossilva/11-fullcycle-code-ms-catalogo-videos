@@ -26,4 +26,10 @@ export interface AddUploadAction extends AnyAction {
     }
 }
 
-export type Actions = AddUploadAction;
+export interface RemoveUploadAction extends AnyAction {
+    payload: {
+        id: string
+    }
+}
+
+export type Actions = AddUploadAction | RemoveUploadAction;

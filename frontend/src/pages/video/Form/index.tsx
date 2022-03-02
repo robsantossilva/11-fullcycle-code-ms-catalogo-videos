@@ -20,6 +20,9 @@ import { InputFileComponent } from '../../../components/InputFile';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
+import { useDispatch, useSelector } from 'react-redux';
+import { State as UploadState, Upload } from "../../../store/upload/types";
+import { Creators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -132,7 +135,28 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
-    const testLoading = useContext(LoadingContext);
+
+    const uploads = useSelector<{upload: UploadState}, Upload[]>(
+        (state)=> state.upload.uploads
+    );
+
+    console.log('uploads',uploads);
+
+    const dispatch = useDispatch();
+
+    setTimeout(()=>{
+        const obj: any = {
+            video: {
+                id: '1',
+                title: 'E o vento levou'
+            },
+            files: [
+                {file: new File([""], "testeAA.mp4")}
+            ]
+        }
+        dispatch(Creators.addUpload(obj));
+
+    }, 1000)
 
     useEffect(() => {
         [
