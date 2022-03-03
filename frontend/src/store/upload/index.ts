@@ -73,6 +73,45 @@ function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction)
     }
 }
 
+function updateProgress(state = INITIAL_STATE, action: Typings.UpdateProgressAction): Typings.State {
+    const videoId = action.payload.video.id;
+    const fileField = action.payload.fileField;
+
+    const {indexUpload, indexFile} = findIndexUploadAndFile(state, videoId, fileField);
+
+    return {
+        uploads: []
+    }
+
+    /**
+     * [
+     *      {
+     *          video: {}
+     *          progress: 0,
+     *          files: {
+     *              {progress: 0}   
+     *          }
+     *      }
+     * ]
+     */
+}
+
+function findIndexUploadAndFile(state: Typings.State, videoId, fileField): {indexUpload?, indexFile?} {
+    const indexUpload = findIndexUpload(state, videoId);
+    if(indexUpload === -1){
+        return {};
+    }
+
+    const upload = state.uploads[indexUpload];
+    const indexFile = findIndexFile(upload.files, fileField);
+    
+    return indexFile === -1 ? {} : {indexUpload, indexFile};
+}
+
 function findIndexUpload(state: Typings.State, id: string){
     return state.uploads.findIndex((upload: Typings.Upload) => upload.video.id === id);
+}
+
+function findIndexFile(files: Array<{fileField}>, fileField: string){
+    return files.findIndex((file) => file.fileField === fileField);
 }
