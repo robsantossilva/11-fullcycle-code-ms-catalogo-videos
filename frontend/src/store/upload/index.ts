@@ -5,14 +5,17 @@ import update from 'immutability-helper';
 // Criando Action Types e Creators
 export const {Types, Creators} = createActions<{
     ADD_UPLOAD: string,
-    REMOVE_UPLOAD: string
+    REMOVE_UPLOAD: string,
+    UPDATE_PROGRESS: string
 }, {
     addUpload(payload: Typings.AddUploadAction['payload']): Typings.AddUploadAction,
-    removeUpload(payload: Typings.RemoveUploadAction['payload']): Typings.RemoveUploadAction
+    removeUpload(payload: Typings.RemoveUploadAction['payload']): Typings.RemoveUploadAction,
+    updateProgress(payload: Typings.UpdateProgressAction['payload']): Typings.UpdateProgressAction
 }>
 ({
     addUpload: ['payload'],
-    removeUpload: ['payload']
+    removeUpload: ['payload'],
+    updateProgress: ['payload']
 });
 
 // Definindo State Inicial
@@ -22,7 +25,9 @@ export const INITIAL_STATE: Typings.State = {
 
 // Criando Reducer apartir do State Inicial e as Actions
 const reducer = createReducer<Typings.State, Typings.Actions>(INITIAL_STATE, {
-    [Types.ADD_UPLOAD]: addUpload as any
+    [Types.ADD_UPLOAD]: addUpload as any,
+    [Types.REMOVE_UPLOAD]: removeUpload as any,
+    [Types.UPDATE_PROGRESS]: updateProgress as any
 });
 
 export default reducer;
@@ -76,12 +81,43 @@ function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction)
 function updateProgress(state = INITIAL_STATE, action: Typings.UpdateProgressAction): Typings.State {
     const videoId = action.payload.video.id;
     const fileField = action.payload.fileField;
-
     const {indexUpload, indexFile} = findIndexUploadAndFile(state, videoId, fileField);
 
-    return {
-        uploads: []
+    if(typeof indexUpload === undefined){
+        return state;
     }
+
+    const upload = state.uploads[indexUpload];
+    const file = upload.files[indexFile];
+
+    // update(state.uploads, {
+    //     [indexUpload]: {
+    //         files: {
+    //             [indexFile]: {
+    //                 $set: {...file, progress: action.payload.progress}
+    //             }
+    //         }
+    //     }
+    // });
+
+    const uploads = update(state.uploads, {
+        [indexUpload]: {
+            $apply(upload){
+
+                const files = update(upload.files, {
+                    [indexFile]: {
+                        $set: {...file, progress: action.payload.progress}
+                    }
+                });
+
+                const progress = calculateGlobalProgress(files);
+
+                return {...upload, progress, files};
+            }
+        }
+    })
+
+    return {uploads};
 
     /**
      * [
@@ -106,6 +142,15 @@ function findIndexUploadAndFile(state: Typings.State, videoId, fileField): {inde
     const indexFile = findIndexFile(upload.files, fileField);
     
     return indexFile === -1 ? {} : {indexUpload, indexFile};
+}
+
+function calculateGlobalProgress(files: Array<{progress}>){
+    const countFiles = files.length;
+    if(!countFiles){
+        return 0;
+    }
+    const sumProgress = files.reduce((sum, file) => sum + file.progress, 0);
+    return sumProgress / countFiles;
 }
 
 function findIndexUpload(state: Typings.State, id: string){
