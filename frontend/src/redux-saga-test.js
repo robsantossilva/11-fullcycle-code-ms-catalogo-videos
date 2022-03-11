@@ -80,7 +80,37 @@ function* searchData(action) { //type, value
 }
 
 function* helloWorld(){
-    console.log('Hello World');
+    console.log("Inicio helloWorld()");
+    while(true){// Execução Ciclica com while(true)
+
+        console.log('\nHello World');
+
+        // { type: 'acaoY', value: 'l' }
+        const action = yield take('acaoY');
+        console.log(action);
+
+        // { type: 'acaoY', value: 'lui' }
+        const action2 = yield take('acaoY');
+        console.log(action2);
+
+        // { type: 'acaoY', value: 'luiz' }
+        const action3 = yield take('acaoY');
+        console.log(action3);
+
+        // { type: 'acaoY', value: 'luiz c' }
+        const action4 = yield take('acaoY');
+        console.log(action4);
+
+        // { type: 'acaoY', value: 'luiz ca' }
+        const action5 = yield take('acaoY');
+        console.log(action5);
+        // put é executado na sequencia sem a necessidade de uma action
+        const result = yield put({
+            type: 'acaoY',
+            value: 'Chamou PUT'
+        });
+        console.log(result);
+    }
 }
 
 function* debounceSearch() {
@@ -90,7 +120,7 @@ function* debounceSearch() {
 function* rootSaga(){
     yield all([
         helloWorld(),
-        debounceSearch()
+        //debounceSearch()
     ])
 
     // yield fork(helloWorld);
@@ -111,11 +141,13 @@ sagaMiddleware.run(rootSaga);
 
 const action = (type, value) => store.dispatch({type, value});
 
+// A Cada Action disparada um yield é acionado em helloWorld
 action('acaoY', 'l');//esperar mudar o state
 action('acaoY', 'lui');
 action('acaoY', 'luiz');
 action('acaoY', 'luiz c');
 action('acaoY', 'luiz ca');
+action('acaoY', 'Robson'); // Passa por todos os yields atualizando o state direto
 //action('acaoW', 'a');
 //o state ainda mudou
-console.log(store.getState());
+console.log("\nState: ",store.getState());
