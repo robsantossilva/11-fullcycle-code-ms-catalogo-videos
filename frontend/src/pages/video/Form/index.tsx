@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, TextField, Theme, Typography, useMediaQuery, useTheme } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import videoHttp from '../../../util/http/video-http';
-import { createRef, MutableRefObject, useContext, useEffect, useRef } from 'react';
+import { createRef, MutableRefObject, useContext, useEffect, useMemo, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from '../../../util/vendor/yup';
 import { useState } from 'react';
@@ -20,6 +20,9 @@ import { InputFileComponent } from '../../../components/InputFile';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
+import { useDispatch, useSelector } from 'react-redux';
+import { State as UploadState, Upload } from "../../../store/upload/types";
+import { Creators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -132,7 +135,50 @@ export const Form: React.FC<FormProps> = ({id}) => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
-    const testLoading = useContext(LoadingContext);
+
+    const uploads = useSelector<{upload: UploadState}, Upload[]>(
+        (state)=> state.upload.uploads
+    );
+
+    console.log('uploads',uploads);
+
+    const dispatch = useDispatch();
+
+    useMemo(() => {
+        setTimeout(()=>{
+            const obj: any = {
+                video: {
+                    id: '1',
+                    title: 'E o vento levou'
+                },
+                files: [
+                    {
+                        file: new File([""], "trailer_file.mp4"),
+                        fileField: "trailer_file"
+                    },
+                    {
+                        file: new File([""], "video_file.mp4"),
+                        fileField: "video_file"
+                    }
+                ]
+            }
+            dispatch(Creators.addUpload(obj));
+            const progress1 = {
+                fileField: 'trailer_file',
+                progress: 10,
+                video: {id: '1'}
+            } as any;
+            dispatch(Creators.updateProgress(progress1));
+    
+            const progress2 = {
+                fileField: 'video_file',
+                progress: 20,
+                video: {id: '1'}
+            } as any;
+            dispatch(Creators.updateProgress(progress2));
+    
+        }, 1000);
+    }, [true]);
 
     useEffect(() => {
         [
