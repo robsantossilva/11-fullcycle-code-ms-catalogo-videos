@@ -14,12 +14,12 @@ function reducer(state = {value: 1}, action) {
     return state;
 }
 
-function* sagaNonBlocing(){
-    console.log('antes do call');
+function* sagaNonBlocking(){
+    console.log('3 - antes do call');
     const {data} = yield call(  //(search) => axios.get('http://nginx/api/videos?search='+search),search
-        axios.get, 'http://nginx/api/videos'
+        axios.get, 'http://localhost:8000/api/videos'
     );
-    console.log('depois do call');
+    console.log('4 - depois do call');
     //yield put()
 }
 
@@ -28,15 +28,15 @@ function* searchData(action) { //type, value
     //const channel = yield actionChannel('acaoY');
     //console.log(channel);
     //while (true) {
-    console.log(yield select((state) => state.text));
-    console.log('antes da acao Y');
+    console.log("1 - " + (yield select((state) => state.text)));
+    console.log('2 - antes da acao Y');
     //const action = yield take(channel); //todas as action types
     const search = action.value;
     try {
 
 
-        yield fork(sagaNonBlocing);
-        console.log('depois do fork');
+        yield fork(sagaNonBlocking);
+        console.log('5 - depois do fork');
         // const [response1, response2] = yield all([
         //     call(  //(search) => axios.get('http://nginx/api/videos?search='+search),search
         //         axios.get, 'http://nginx/api/videos?search=' + search
@@ -56,7 +56,7 @@ function* searchData(action) { //type, value
         //     //(search) => axios.get('http://nginx/api/videos?search='+search),search
         //     axios.get, 'http://nginx/api/categories?search=' + search
         // );
-        console.log(search);
+        console.log("6 - " + search);
         //console.log(data);
         yield put({
             type: 'acaoX',
@@ -80,36 +80,45 @@ function* searchData(action) { //type, value
 }
 
 function* helloWorld(){
-    console.log("Inicio helloWorld()");
+    console.log(">> Inicio helloWorld()");
+
+    //const actionType = 'acaoY';
+    const actionType = yield actionChannel('acaoY'); // Garantir a sequencia dos dispatchs
+
     while(true){// Execução Ciclica com while(true)
 
-        console.log('\nHello World');
+        console.log('\n     >>> Hello World');
 
         // { type: 'acaoY', value: 'l' }
-        const action = yield take('acaoY');
-        console.log(action);
+        const action = yield take(actionType);
+        console.log("1 - ",action);
+
+        const {data} = yield call(  //(search) => axios.get('http://nginx/api/videos?search='+search),search
+        axios.get, 'http://localhost:8000/api/videos'
+        );
+        console.log('data: ', data.data.length);
 
         // { type: 'acaoY', value: 'lui' }
-        const action2 = yield take('acaoY');
-        console.log(action2);
+        const action2 = yield take(actionType);
+        console.log("2 - ",action2);
 
         // { type: 'acaoY', value: 'luiz' }
-        const action3 = yield take('acaoY');
-        console.log(action3);
+        const action3 = yield take(actionType);
+        console.log("3 - ",action3);
 
         // { type: 'acaoY', value: 'luiz c' }
-        const action4 = yield take('acaoY');
-        console.log(action4);
+        const action4 = yield take(actionType);
+        console.log("4 - ",action4);
 
         // { type: 'acaoY', value: 'luiz ca' }
-        const action5 = yield take('acaoY');
-        console.log(action5);
+        const action5 = yield take(actionType);
+        console.log("5 - ",action5);
         // put é executado na sequencia sem a necessidade de uma action
         const result = yield put({
             type: 'acaoY',
             value: 'Chamou PUT'
         });
-        console.log(result);
+        console.log("Put - ",result);
     }
 }
 
@@ -119,8 +128,8 @@ function* debounceSearch() {
 
 function* rootSaga(){
     yield all([
-        helloWorld(),
-        //debounceSearch()
+        //helloWorld(),
+        debounceSearch()
     ])
 
     // yield fork(helloWorld);

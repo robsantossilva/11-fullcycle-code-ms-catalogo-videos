@@ -148,7 +148,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         setTimeout(()=>{
             const obj: any = {
                 video: {
-                    id: '1',
+                    id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344',
                     title: 'E o vento levou'
                 },
                 files: [
@@ -163,19 +163,19 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 ]
             }
             dispatch(Creators.addUpload(obj));
-            const progress1 = {
-                fileField: 'trailer_file',
-                progress: 10,
-                video: {id: '1'}
-            } as any;
-            dispatch(Creators.updateProgress(progress1));
+            // const progress1 = {
+            //     fileField: 'trailer_file',
+            //     progress: 10,
+            //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
+            // } as any;
+            // dispatch(Creators.updateProgress(progress1));
     
-            const progress2 = {
-                fileField: 'video_file',
-                progress: 20,
-                video: {id: '1'}
-            } as any;
-            dispatch(Creators.updateProgress(progress2));
+            // const progress2 = {
+            //     fileField: 'video_file',
+            //     progress: 20,
+            //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
+            // } as any;
+            // dispatch(Creators.updateProgress(progress2));
     
         }, 1000);
     }, [true]);

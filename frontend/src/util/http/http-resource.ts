@@ -39,6 +39,14 @@ export default class HttpResource {
             : this.http.post<T>(`${this.resource}/${id}`, sendData, config)
     }
 
+    partialUpdate<T = any>(id, data, options?: { http?: { usePost: boolean }, config?: AxiosRequestConfig }): Promise<AxiosResponse<T>> {
+        let sendData = this.makeSendData(data);
+        const {http, config} = (options || {}) as any;
+        return !options || !http || !http.usePost
+            ? this.http.patch<T>(`${this.resource}/${id}`, sendData, config)
+            : this.http.post<T>(`${this.resource}/${id}`, sendData, config)
+    }
+
     delete<T = any>(id): Promise<AxiosResponse<T>> {
         return this.http.delete<T>(`${this.resource}/${id}`);
     }

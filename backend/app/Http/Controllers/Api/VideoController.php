@@ -78,7 +78,6 @@ class VideoController extends BasicCrudController
         return $this->rules();
     }
 
-
     public function store(Request $request)
     {
         $this->request = $request;
@@ -92,9 +91,13 @@ class VideoController extends BasicCrudController
 
     public function update(Request $request, $id)
     {
+        //return ['message' => 'OK'];
         $this->request = $request;
         $obj = $this->findOrFail($id);
-        $validatedData = $this->validate($request, $this->ruleStore());
+        $validatedData = $this->validate(
+            $request,
+            $request->isMethod('PUT') ? $this->ruleStore() : $this->rulesPatch()
+        );
         $obj->update($validatedData);
         $obj->refresh();
         $resource = $this->resource();
