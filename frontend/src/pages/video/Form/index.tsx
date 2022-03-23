@@ -21,7 +21,7 @@ import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
 import { useDispatch, useSelector } from 'react-redux';
-import { State as UploadState, Upload } from "../../../store/upload/types";
+import { UploadState, Upload, UploadModule, FileInfo } from "../../../store/upload/types";
 import { Creators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -123,7 +123,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
     });
     useSnackbarFormError(formState.submitCount, errors);
 
-    const snackbar = useSnackbar();
+    const {enqueueSnackbar} = useSnackbar();
     const history = useHistory();
     const [video, setVideo] = useState<Video | null>(null);
     const loading = useContext(LoadingContext)
@@ -136,7 +136,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
 
-    const uploads = useSelector<{upload: UploadState}, Upload[]>(
+    const uploads = useSelector<UploadModule, Upload[]>(
         (state)=> state.upload.uploads
     );
 
@@ -144,41 +144,41 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
     const dispatch = useDispatch();
 
-    useMemo(() => {
-        setTimeout(()=>{
-            const obj: any = {
-                video: {
-                    id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344',
-                    title: 'E o vento levou'
-                },
-                files: [
-                    {
-                        file: new File([""], "trailer_file.mp4"),
-                        fileField: "trailer_file"
-                    },
-                    {
-                        file: new File([""], "video_file.mp4"),
-                        fileField: "video_file"
-                    }
-                ]
-            }
-            dispatch(Creators.addUpload(obj));
-            // const progress1 = {
-            //     fileField: 'trailer_file',
-            //     progress: 10,
-            //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
-            // } as any;
-            // dispatch(Creators.updateProgress(progress1));
+    // useMemo(() => {
+    //     setTimeout(()=>{
+    //         const obj: any = {
+    //             video: {
+    //                 id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344',
+    //                 title: 'E o vento levou'
+    //             },
+    //             files: [
+    //                 {
+    //                     file: new File([""], "trailer_file.mp4"),
+    //                     fileField: "trailer_file"
+    //                 },
+    //                 {
+    //                     file: new File([""], "video_file.mp4"),
+    //                     fileField: "video_file"
+    //                 }
+    //             ]
+    //         }
+    //         dispatch(Creators.addUpload(obj));
+    //         // const progress1 = {
+    //         //     fileField: 'trailer_file',
+    //         //     progress: 10,
+    //         //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
+    //         // } as any;
+    //         // dispatch(Creators.updateProgress(progress1));
     
-            // const progress2 = {
-            //     fileField: 'video_file',
-            //     progress: 20,
-            //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
-            // } as any;
-            // dispatch(Creators.updateProgress(progress2));
+    //         // const progress2 = {
+    //         //     fileField: 'video_file',
+    //         //     progress: 20,
+    //         //     video: {id: 'd40617ac-b4ec-4592-a5d7-37ba21cb1344'}
+    //         // } as any;
+    //         // dispatch(Creators.updateProgress(progress2));
     
-        }, 1000);
-    }, [true]);
+    //     }, 1000);
+    // }, [true]);
 
     useEffect(() => {
         [
@@ -192,18 +192,6 @@ export const Form: React.FC<FormProps> = ({id}) => {
     }, [register]);
 
     useEffect(() => {
-
-        snackbar.enqueueSnackbar('', {
-            key: 'snackbar-upload',
-            persist: true,
-            anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right'
-            },
-            content: (key, message) => (
-                <SnackbarUpload id={key}/>
-            )
-        });
 
         if(!id){
             return;
@@ -220,7 +208,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 }
             } catch (error) {
                 console.log(error);
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Error trying to load video',
                     {variant: 'error',}
                 )
@@ -242,15 +230,16 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
         try {
             const http = !video
-            ? videoHttp.create(sendData)
-            : videoHttp.update(video.id, sendData);
+            ? videoHttp.create<{data: Video}>(sendData)
+            : videoHttp.update<{data: Video}>(video.id, sendData);
 
             const {data} = await http;
 
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Video saved successfully',
                 {variant:"success"}
             );
+            uploadFiles(data.data);
             id && resetForm(video);
             setTimeout(() => {
                 if(event){
@@ -264,7 +253,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
           
         } catch (error) {
             console.error(error);
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Error trying to save video',
                 {variant:"error"}
             );
@@ -279,6 +268,31 @@ export const Form: React.FC<FormProps> = ({id}) => {
         genreRef.current.clear();
         categoryRef.current.clear();
         //reset(data);
+    }
+
+    function uploadFiles(video) {
+        const files: FileInfo[] = fileFields
+            .filter(fileField => getValues()[fileField])
+            .map(fileField => ({fileField, file: getValues()[fileField] as File}));
+
+        if (!files.length) {
+            return;
+        }
+
+        dispatch(Creators.addUpload({video, files}));
+
+        enqueueSnackbar('', {
+            key: 'snackbar-upload',
+            persist: true,
+            anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'right'
+            },
+            content: (key, message) => {
+                const id = key as any;
+                return <SnackbarUpload id={id}/>
+            }
+        });
     }
 
     return (
@@ -382,14 +396,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                                 disabled={loading}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        {/* <Grid item xs={12}>
                             <FormHelperText>
                                 Escolha os gêneros do vídeo
                             </FormHelperText>
                             <FormHelperText>
                                 Escolha pelo menos uma categoria de cada gênero
                             </FormHelperText>
-                        </Grid>
+                        </Grid> */}
                     </Grid>
                     
                 </Grid>

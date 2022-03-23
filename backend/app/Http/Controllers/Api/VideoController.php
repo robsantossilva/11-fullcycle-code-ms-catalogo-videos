@@ -91,7 +91,8 @@ class VideoController extends BasicCrudController
 
     public function update(Request $request, $id)
     {
-        //return ['message' => 'OK'];
+        // sleep(10);
+        // return ['message' => 'OK'];
         $this->request = $request;
         $obj = $this->findOrFail($id);
         $validatedData = $this->validate(
@@ -122,10 +123,19 @@ class VideoController extends BasicCrudController
 
     protected function queryBuilder(): Builder
     {
-        $queryBuilder =  parent::queryBuilder();
-        if ($this->loadGenreCategories) {
-            $queryBuilder->with(['genres.categories']);
-        }
-        return $queryBuilder;
+        // $queryBuilder =  parent::queryBuilder();
+        // if ($this->loadGenreCategories) {
+        //     $queryBuilder->with(['genres.categories']);
+        // }
+        // return $queryBuilder;
+
+        $action = \Route::getCurrentRoute()->getAction()['uses'];
+        return parent::queryBuilder()->with([
+            strpos($action, 'index') !== false
+                ? 'genres'
+                : 'genres.categories',
+            'categories',
+            'castMembers'
+        ]);
     }
 }

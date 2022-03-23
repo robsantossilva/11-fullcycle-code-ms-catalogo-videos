@@ -5,12 +5,10 @@ import upload from './upload';
 
 const sagaMiddleware = createSagaMiddleware();
 
-const reducers = combineReducers({
-    upload
-});
-
 const store = createStore(
-    reducers,
+    combineReducers({
+        upload
+    }),
     applyMiddleware(sagaMiddleware)
 )
 
