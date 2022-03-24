@@ -18,7 +18,7 @@ export interface AsyncAutocompleteComponent {
  
 const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAutocompleteProps>((props, ref) => {
 
-    const {AutocompleteProps, debounceTime = 300} = props;
+    const {AutocompleteProps, debounceTime = 300, fetchOptions} = props;
     const {freeSolo = false,  onOpen, onClose, onInputChange } = AutocompleteProps as any;
     const [open, setOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
@@ -76,10 +76,10 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
         if(!open && !freeSolo){
             setOptions([]);
         }
-    }, [open])
+    }, [open, freeSolo])
 
     useEffect(() => {
-        if(!open || debouncedSearchText === "" && freeSolo) {
+        if(!open || (debouncedSearchText === "" && freeSolo)) {
             return;
         }
         
@@ -87,7 +87,7 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
         (async function getData() {
             setLoading(true);
             try {
-                const data = await props.fetchOptions(debouncedSearchText);
+                const data = await fetchOptions(debouncedSearchText);
                 if(isSubscribed){
                     console.log('catmembers', data)
                     setOptions(data);
@@ -101,7 +101,7 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
             isSubscribed = false;
         }
 
-    }, [freeSolo ? debouncedSearchText : open]);
+    }, [freeSolo, debouncedSearchText, open, fetchOptions]);
 
     useImperativeHandle(ref, () => ({
         clear: () => {

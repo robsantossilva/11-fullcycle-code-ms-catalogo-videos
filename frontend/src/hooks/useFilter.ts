@@ -1,6 +1,6 @@
 import { MUIDataTableColumn } from "mui-datatables";
 import { Dispatch, Reducer, useEffect, useReducer, useState } from "react";
-import reducer, { Creators, INITIAL_STATE } from "../store/filter";
+import reducer, { Creators } from "../store/filter";
 import { Actions as FilterActions, State as FilterState } from "../store/filter/types";
 import { useDebounce } from "use-debounce";
 import { useHistory } from "react-router";
@@ -44,7 +44,7 @@ export default function useFilter(options: UseFilterOptions) {
 
     useEffect(() => {
         filterManager.replaceHistory();
-    }, [])
+    })
 
     return {
         columns: filterManager.columns,

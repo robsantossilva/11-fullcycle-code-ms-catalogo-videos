@@ -130,7 +130,6 @@ const Table = () => {
     const subscribed = useRef(true)
     const [data, setData] = useState<Genre[]>([]);
     const loading = useContext(LoadingContext)
-    const [categories, setCategories] = useState<Category[]>()
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
 
     const {
@@ -138,7 +137,6 @@ const Table = () => {
         filterManager,
         filterState,
         debouncedFilterState,
-        dispatch,
         totalRecords,
         setTotalRecords,
       } = useFilter({
@@ -166,7 +164,6 @@ const Table = () => {
             try {
                 const {data} = await categoryHttp.list({queryParams: {all: ''}});
                 if (isSubscribed) {
-                    setCategories(data.data);
                     (columnCategories.options as any).filterOptions.names = data.data.map(category => category.name)
                 }
             } catch (error) {

@@ -11,7 +11,6 @@ import { Category, ListResponse } from '../../util/models';
 import DefaultTable, { makeActionStyles, MuiDataTableRefComponent, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
-import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
 import LoadingContext from '../../components/loading/LoadingContext';
 
@@ -95,7 +94,6 @@ const Table: React.FC = () => {
         filterManager,
         filterState,
         debouncedFilterState,
-        dispatch,
         totalRecords, 
         setTotalRecords
     } = useFilter({

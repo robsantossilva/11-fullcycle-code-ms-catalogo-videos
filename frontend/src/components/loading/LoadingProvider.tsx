@@ -2,7 +2,7 @@
 import * as React from 'react';
 import LoadingContext from "./LoadingContext";
 import {useEffect, useMemo, useState} from "react";
-import axios, { AxiosRequestConfig } from  'axios';
+import { AxiosRequestConfig } from  'axios';
 import { addGlobalRequestInterceptor, addGlobalResponseInterceptor, removeGlobalRequestInterceptor, removeGlobalResponseInterceptor } from '../../util/http';
 
 export const LoadingProvider = (props) => {
@@ -40,7 +40,7 @@ export const LoadingProvider = (props) => {
             removeGlobalRequestInterceptor(requestIds);
             removeGlobalResponseInterceptor(responseIds);
         }
-    }, [true]);   
+    }, []);   
 
     useEffect(() => {
         if (!countRequest) {

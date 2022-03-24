@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { MUIDataTableColumn } from 'mui-datatables';
 import { useContext, useEffect, useRef, useState } from 'react';
 import castMemberHttp from "../../util/http/cast-member-http";
 import format from 'date-fns/format';
@@ -11,7 +10,6 @@ import { CastMember, CastMemberTypeMap, ListResponse } from '../../util/models';
 import DefaultTable, { makeActionStyles, MuiDataTableRefComponent, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
 import useFilter from '../../hooks/useFilter';
-import { Creators, INITIAL_STATE } from '../../store/filter';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import * as yup from '../../util/vendor/yup';
 import { invert } from 'lodash';
@@ -126,7 +124,6 @@ const Table = () => {
         filterManager,
         filterState,
         debouncedFilterState,
-        dispatch,
         totalRecords,
         setTotalRecords,
     } = useFilter({

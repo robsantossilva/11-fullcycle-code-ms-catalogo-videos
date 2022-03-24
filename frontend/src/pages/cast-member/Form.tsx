@@ -65,7 +65,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
 
         getCastMember();
-    }, []);
+    });
 
     useEffect(() => {
         register({name: "type"})

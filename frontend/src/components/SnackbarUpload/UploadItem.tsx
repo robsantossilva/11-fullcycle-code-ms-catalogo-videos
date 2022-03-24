@@ -46,8 +46,6 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
     const error = hasError(upload);
     const [itemHover, setItemHover] = useState(false);
 
-    {console.log('UploadItem',upload)}
-
     return (
         <>
             <Tooltip

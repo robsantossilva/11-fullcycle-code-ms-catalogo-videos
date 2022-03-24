@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
-import { MutableRefObject, RefAttributes } from 'react';
+import { MutableRefObject, RefAttributes, useCallback } from 'react';
 import AsyncAutocomplete, { AsyncAutocompleteComponent } from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelectedItem';
@@ -29,7 +29,12 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
     const {addItem, removeItem} = useCollectionManager(castMembers, setCastMembers);
     const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>
 
-    function fetchOptions(searchText) {
+    // Se este componente "CastMemberField" for renderizado novamente
+    // esta função callback será renderizada também
+    // por ser uma função passada como props de um componente 
+    // pode causar um efeito cascata de renderizações 
+    // Por isso é importante usar o useCallback para otimizar e evitar renderizações desnecessarias
+    const fetchOptions = useCallback((searchText) => {
         return autocompleteHttp(
             castMemberHttp
                 .list({
@@ -42,7 +47,7 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
             return data.data
         })
         .catch(error => console.log(error));
-    }
+    }, [autocompleteHttp]);
 
     useImperativeHandle(ref, ()=>({
         clear: ()=> autocompleteRef.current.clear()
