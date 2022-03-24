@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { makeStyles, MenuItem, TextField, Theme } from '@material-ui/core';
+import { MenuItem, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
@@ -10,14 +10,6 @@ import * as yup from 'yup';
 import { useSnackbar } from 'notistack';
 import SubmitActions from '../../components/SubmitActions';
 import LoadingContext from '../../components/loading/LoadingContext';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-});
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -51,8 +43,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     });
 
-    const classes = useStyles();   
-    const snackbar = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
     const history = useHistory();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -84,14 +75,14 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 }                    
             } catch (error) {
                 console.error(error);
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Error trying to load genre',
                     {variant: 'error',}
                 )
             }
         })();
 
-    }, []); //[]
+    }, [enqueueSnackbar, id, reset]); //[]
 
 
     useEffect(() => {
@@ -104,7 +95,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
             ? genreHttp.create(formData)
             : genreHttp.update(genre?.id, formData);
             const {data} = await http;
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Genre saved successfully',
                 {variant:"success"}
             );
@@ -121,7 +112,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
             });
         }catch (err) {
             console.log(err);
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Error trying to save genre',
                 {variant:"error"}
             );

@@ -9,7 +9,7 @@ import categoryHttp from '../../../util/http/category-http';
 import { getGenresFromCategory } from '../../../util/model-filters';
 import {grey} from "@material-ui/core/colors";
 import { Genre } from '../../../util/models';
-import { MutableRefObject, RefAttributes, useImperativeHandle, useRef } from 'react';
+import { MutableRefObject, RefAttributes, useCallback, useImperativeHandle, useRef } from 'react';
 
 const useStyles = makeStyles((theme: Theme) => ({
     genresSubtitle: {
@@ -40,7 +40,7 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
     const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
     const theme = useTheme();
 
-    function fetchOptions(searchText) {
+    const fetchOptions = useCallback((searchText) => {
         return autocompleteHttp(
             categoryHttp
                 .list({
@@ -52,7 +52,7 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
         )
         .then((data) => data.data)
         .catch(error => console.log(error));
-    }
+    }, [autocompleteHttp, genres]);
 
     useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

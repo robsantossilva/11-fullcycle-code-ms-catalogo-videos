@@ -6,12 +6,10 @@ import parseISO from 'date-fns/parseISO';
 import categoryHttp from '../../util/http/category-http';
 import EditIcon from '@material-ui/icons/Edit';
 import {Link} from "react-router-dom";
-import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, Genre, ListResponse } from '../../util/models';
 import DefaultTable, { makeActionStyles, MuiDataTableRefComponent, TableColumn } from '../../components/Table';
 import { useSnackbar } from 'notistack';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
-import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
 import videoHttp from '../../util/http/video-http';
 import DeleteDialog from '../../components/DeleteDialog';
@@ -116,7 +114,6 @@ const Table: React.FC = () => {
         filterManager,
         filterState,
         debouncedFilterState,
-        dispatch,
         totalRecords, 
         setTotalRecords
     } = useFilter({

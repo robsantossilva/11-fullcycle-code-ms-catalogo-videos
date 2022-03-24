@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { END, eventChannel } from 'redux-saga';
 import {actionChannel, call, put, take} from 'redux-saga/effects';
 import videoHttp from '../../util/http/video-http';

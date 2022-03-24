@@ -41,7 +41,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
         }
     });
 
-    const snackbar = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
     const history = useHistory();
     const [category, setCategory] = useState<Category | null>(null);
     const loading = useContext(LoadingContext)
@@ -62,7 +62,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
                 }                 
             } catch (error) {
                 console.log(error);
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Error trying to load category',
                     {variant: 'error',}
                 )
@@ -73,7 +73,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
             isSubscribed = false;
         }
 
-    }, []);
+    }, [enqueueSnackbar, id, reset]);
         
     useEffect(() => {
         register({name: "is_active"})
@@ -87,7 +87,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
 
             const {data} = await http;
 
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Category saved successfully',
                 {variant:"success"}
             );
@@ -104,7 +104,7 @@ export const Form: React.FC<FormProps> = ({id}) => {
           
         } catch (error) {
             console.error(error);
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Error trying to save category',
                 {variant:"error"}
             );

@@ -8,7 +8,6 @@ import { Navbar } from './components/Navbar';
 import AppRouter from './routes/AppRouter';
 import theme from './theme';
 import Spinner from './components/Spinner';
-import LoadingContext from './components/loading/LoadingContext';
 import { LoadingProvider } from './components/loading/LoadingProvider';
 
 const App: React.FC = () => {
