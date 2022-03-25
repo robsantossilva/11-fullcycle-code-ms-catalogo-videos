@@ -14,6 +14,7 @@ import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import * as yup from '../../util/vendor/yup';
 import { invert } from 'lodash';
 import LoadingContext from '../../components/loading/LoadingContext';
+import { useMemo } from 'react';
 
 const castMemberNames = Object.values(CastMemberTypeMap);
 
@@ -82,35 +83,6 @@ const debounceTime = 300;
 const debouncedSearchTime = 300;
 const rowsPerPage = 15;
 const rowsPerPageOptions = [15, 25, 50];
-const extraFilter = {
-    createValidationSchema: () => {
-      return yup.object().shape({
-        type: yup
-          .string()
-          .nullable()
-          .transform((value) => {
-            return !value || !castMemberNames.includes(value)
-              ? undefined
-              : value;
-          })
-          .default(null),
-      });
-    },
-    formatSearchParams: (debouncedState) => {
-      return debouncedState.extraFilter
-        ? {
-            ...(debouncedState.extraFilter.type && {
-              type: debouncedState.extraFilter.type,
-            }),
-          }
-        : undefined;
-    },
-    getStateFromURL: (queryParams) => {
-      return {
-        type: queryParams.get("type"),
-      };
-    },
-  }
 
 const Table = () => {
     const snackbar = useSnackbar();
@@ -119,6 +91,36 @@ const Table = () => {
     const loading = useContext(LoadingContext)
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
 
+    const extraFilter = useMemo(() => ({
+        createValidationSchema: () => {
+            return yup.object().shape({
+            type: yup
+                .string()
+                .nullable()
+                .transform((value) => {
+                return !value || !castMemberNames.includes(value)
+                    ? undefined
+                    : value;
+                })
+                .default(null),
+            });
+        },
+        formatSearchParams: (debouncedState) => {
+            return debouncedState.extraFilter
+            ? {
+                ...(debouncedState.extraFilter.type && {
+                    type: debouncedState.extraFilter.type,
+                }),
+                }
+            : undefined;
+        },
+        getStateFromURL: (queryParams) => {
+            return {
+            type: queryParams.get("type"),
+            };
+        }
+    }) ,[]);
+
     const {
         columns,
         filterManager,
@@ -126,6 +128,7 @@ const Table = () => {
         debouncedFilterState,
         totalRecords,
         setTotalRecords,
+        cleanSearchText
     } = useFilter({
         columns: columnsDefinition,
         debounceTime: debounceTime,
@@ -154,7 +157,7 @@ const Table = () => {
         try {
             const {data} = await castMemberHttp.list<ListResponse<CastMember>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
+                    search: cleanSearchText(filterState.search),
                     page: filterState.pagination.page,
                     per_page: filterState.pagination.per_page,
                     sort: filterState.order.sort,
@@ -185,13 +188,12 @@ const Table = () => {
 
     useEffect(() => {
         subscribed.current = true;
-        filterManager.pushHistory();
-        getData()
+        getData();
         return () => {
             subscribed.current = false;
         }
     }, [
-        filterManager.cleanSearchText(debouncedFilterState.search),
+        cleanSearchText(debouncedFilterState.search),
         debouncedFilterState.pagination.page,
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order,

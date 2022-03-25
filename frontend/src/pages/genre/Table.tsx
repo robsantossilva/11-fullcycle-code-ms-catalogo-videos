@@ -139,6 +139,7 @@ const Table = () => {
         debouncedFilterState,
         totalRecords,
         setTotalRecords,
+        cleanSearchText
       } = useFilter({
         columns: columnsDefinition,
         debounceTime: debounceTime,
@@ -182,13 +183,12 @@ const Table = () => {
 
     useEffect(() => {
         subscribed.current = true;
-        filterManager.pushHistory();
         getData();
         return () => {
             subscribed.current = false;
         }
     }, [
-        filterManager.cleanSearchText(debouncedFilterState.search),
+        cleanSearchText(debouncedFilterState.search),
         debouncedFilterState.pagination.page,
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order,
@@ -199,7 +199,7 @@ const Table = () => {
         try {
             const {data} = await genreHttp.list<ListResponse<Genre>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
+                    search: cleanSearchText(filterState.search),
                     page: filterState.pagination.page,
                     per_page: filterState.pagination.per_page,
                     sort: filterState.order.sort,
