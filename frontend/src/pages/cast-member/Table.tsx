@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import castMemberHttp from "../../util/http/cast-member-http";
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -85,7 +85,7 @@ const rowsPerPage = 15;
 const rowsPerPageOptions = [15, 25, 50];
 
 const Table = () => {
-    const snackbar = useSnackbar();
+    const {enqueueSnackbar} = useSnackbar();
     const subscribed = useRef(true)
     const [data, setData] = useState<CastMember[]>([]);
     const loading = useContext(LoadingContext)
@@ -138,7 +138,7 @@ const Table = () => {
         extraFilter,
     });
 
-    //const searchText = cleanSearchText(debouncedFilterState.search);
+    const searchText = cleanSearchText(debouncedFilterState.search);
     //?type=Diretor
     const indexColumnType = columns.findIndex((c) => c.name === "type");
     const columnType = columns[indexColumnType];
@@ -152,19 +152,25 @@ const Table = () => {
     //     serverSideFilterList[indexColumnType] = [typeFilterValue];
     // }
 
-    async function getData() {
+    const getData = useCallback(async ({
+        search, 
+        page, 
+        per_page, 
+        sort,
+        dir, 
+        type
+    }) => {
 
         try {
             const {data} = await castMemberHttp.list<ListResponse<CastMember>>({
                 queryParams: {
-                    search: cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir,
-                    ...(debouncedFilterState.extraFilter &&
-                        debouncedFilterState.extraFilter.type && {
-                          type: invert(CastMemberTypeMap)[debouncedFilterState.extraFilter.type],
+                    search,
+                    page,
+                    per_page,
+                    sort,
+                    dir,
+                    ...(type && {
+                          type: invert(CastMemberTypeMap)[type],
                     })
                 }
             });
@@ -179,25 +185,39 @@ const Table = () => {
                 return;
             }
 
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Error trying to list cast members',
                 {variant:"error"}
             );
         }
-    }
+    }, [enqueueSnackbar, setTotalRecords]);
 
     useEffect(() => {
         subscribed.current = true;
-        getData();
+        getData(
+            {
+                search: searchText,
+                page: debouncedFilterState.pagination.page,
+                per_page: debouncedFilterState.pagination.per_page,
+                sort: debouncedFilterState.order.sort,
+                dir: debouncedFilterState.order.dir,
+                ...(debouncedFilterState.extraFilter &&
+                    debouncedFilterState.extraFilter.type && {
+                        type: debouncedFilterState.extraFilter.type,
+                })
+            }
+        );
+
         return () => {
             subscribed.current = false;
         }
     }, [
-        cleanSearchText(debouncedFilterState.search),
+        searchText,
         debouncedFilterState.pagination.page,
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order,
-        JSON.stringify(debouncedFilterState.extraFilter),
+        debouncedFilterState.extraFilter,
+        getData
     ]);
 
     return (

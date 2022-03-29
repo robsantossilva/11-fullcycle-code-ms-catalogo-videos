@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useRef, useContext, useCallback } from 'react';
 import {IconButton, MuiThemeProvider } from '@material-ui/core';
 import format from 'date-fns/format';
 import parseISO from 'date-fns/parseISO';
@@ -83,7 +83,7 @@ const rowsPerPage = 15;
 const rowsPerPageOptions = [15, 25, 50];
 const Table: React.FC = () => {
 
-    const snackbar = useSnackbar(); 
+    const {enqueueSnackbar} = useSnackbar(); 
     const subscribed = useRef(true)
     const [data, setData] = useState<Category[]>([]);
     const loading = useContext(LoadingContext);
@@ -105,40 +105,28 @@ const Table: React.FC = () => {
         tableRef,
     });
 
-    useEffect(() => {
-        subscribed.current = true;
-        getData();
-        return () => {
-            subscribed.current = false;
-        }
-    },[
-        cleanSearchText(debouncedFilterState.search),
-        debouncedFilterState.pagination.page,
-        debouncedFilterState.pagination.per_page,
-        debouncedFilterState.order
-    ]);
+    const searchText = cleanSearchText(debouncedFilterState.search);
 
-    async function getData() {
+    const getData = useCallback(async ({
+        search, 
+        page, 
+        per_page, 
+        sort,
+        dir
+    }) => {
         try{
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
-                    search: cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir
+                    search,
+                    page,
+                    per_page,
+                    sort,
+                    dir
                 }
             });
             if(subscribed.current){
                 setData(data.data);
                 setTotalRecords(data.meta.total);
-                // setfilterState((prevState => ({
-                //     ...prevState,
-                //     pagination: {
-                //         ...prevState.pagination,
-                //         total: data.meta.total
-                //     }
-                // })));
             }
         } catch (error) {
             console.error(error);
@@ -147,12 +135,32 @@ const Table: React.FC = () => {
                 return;
             }
 
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Error trying to list categories',
                 {variant:"error"}
             );
         }
-    }
+    }, [enqueueSnackbar, setTotalRecords]);
+
+    useEffect(() => {
+        subscribed.current = true;
+        getData({
+            search: searchText,
+            page: debouncedFilterState.pagination.page,
+            per_page: debouncedFilterState.pagination.per_page,
+            sort: debouncedFilterState.order.sort,
+            dir: debouncedFilterState.order.dir
+        });
+        return () => {
+            subscribed.current = false;
+        }
+    },[
+        debouncedFilterState.order.dir, 
+        debouncedFilterState.order.sort, 
+        debouncedFilterState.pagination.page, 
+        debouncedFilterState.pagination.per_page, 
+        getData, 
+        searchText]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length -1)}>
