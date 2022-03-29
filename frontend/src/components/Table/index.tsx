@@ -72,8 +72,9 @@ export interface TableProps extends MUIDataTableProps, RefAttributes<MuiDataTabl
     debouncedSearchTime?: number;
 }
 
+let count = 0;
 const Table = React.forwardRef<MuiDataTableRefComponent, TableProps>((props, ref) => {
-
+    console.log('Table', ++count);
     function extractMuiDataTableColumns(columns: TableColumn[]): MUIDataTableColumn[] {
         setColumnsWith(columns);
         return columns.map(column => omit(column, 'width'))

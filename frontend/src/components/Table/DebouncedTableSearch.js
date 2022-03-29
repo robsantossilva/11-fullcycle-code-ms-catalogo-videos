@@ -45,7 +45,7 @@ class DebouncedTableSearch extends React.PureComponent {
 
     handleTextChange = event => {
         const value = event.target.value;
-        console.log(value);
+        console.log('DebouncedTableSearch -> handleTextChange', value);
         this.setState({
             text: value
         }, () => this.debouncedOnSearch(value))
@@ -91,7 +91,7 @@ class DebouncedTableSearch extends React.PureComponent {
     render() {
         const {classes, options, onHide} = this.props;
         let value = this.state.text;
-        console.log(value);
+        console.log('DebouncedTableSearch -> render', value);
         return (
             <Grow appear in={true} timeout={300}>
                 <div className={classes.main} ref={el => (this.rootRef = el)}>

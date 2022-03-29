@@ -95,7 +95,8 @@ const Table: React.FC = () => {
         filterState,
         debouncedFilterState,
         totalRecords, 
-        setTotalRecords
+        setTotalRecords,
+        cleanSearchText
     } = useFilter({
         columns: columnsDefinition,
         debounceTime: debounceTime,
@@ -106,13 +107,12 @@ const Table: React.FC = () => {
 
     useEffect(() => {
         subscribed.current = true;
-        filterManager.pushHistory();
         getData();
         return () => {
             subscribed.current = false;
         }
     },[
-        filterManager.cleanSearchText(debouncedFilterState.search),
+        cleanSearchText(debouncedFilterState.search),
         debouncedFilterState.pagination.page,
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order
@@ -122,7 +122,7 @@ const Table: React.FC = () => {
         try{
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
+                    search: cleanSearchText(filterState.search),
                     page: filterState.pagination.page,
                     per_page: filterState.pagination.per_page,
                     sort: filterState.order.sort,
