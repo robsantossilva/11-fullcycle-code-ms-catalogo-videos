@@ -29,11 +29,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if(env('TESTING_PROD') !== false){
+        if (env('TESTING_PROD') !== false) {
             Category::observe(SyncModelObserver::class);
             Genre::observe(SyncModelObserver::class);
             CastMember::observe(SyncModelObserver::class);
         }
+
+        \View::addExtension('html', 'blade');
 
         // DB::listen(function($query) {
         //     Log::info(

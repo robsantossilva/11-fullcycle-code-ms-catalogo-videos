@@ -145,6 +145,8 @@ export default function useFilter(options: UseFilterOptions) {
     const INITIAL_STATE = stateFromURL;
     const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(reducer, INITIAL_STATE);
     const filterManager = new FilterManager({...options, schema, dispatch, state: filterState});
+
+    //atrasando a atualização do estado até que o intervalo entre as mudança seja superior ao debounceTime
     const [debouncedFilterState] = useDebounce(filterState, options.debounceTime);
 
     // replaceHistory
@@ -202,7 +204,8 @@ export default function useFilter(options: UseFilterOptions) {
         debouncedFilterState,
         dispatch,
         totalRecords, 
-        setTotalRecords
+        setTotalRecords,
+        changePage: filterManager.changePage
     }
 }
 
