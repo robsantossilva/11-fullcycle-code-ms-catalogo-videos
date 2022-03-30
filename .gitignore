@@ -2,3 +2,4 @@
 .docker/dbdata/
 .idea/
 .npm-cache/
+backend/storage/credentials/google/*.json
