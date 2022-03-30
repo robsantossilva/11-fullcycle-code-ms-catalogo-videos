@@ -7,6 +7,8 @@ use App\Models\Traits\Uuid;
 use App\Models\Video;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\UploadFiles;
+use App\Models\Traits\SerializeDateToISO8601;
+use EloquentFilter\Filterable;
 
 class VideoUnitTest extends TestCase
 {
@@ -17,7 +19,6 @@ class VideoUnitTest extends TestCase
     {
         parent::setUp();
         $this->video = new Video();
-
     }
 
     public function testFillableAttribute()
@@ -52,18 +53,21 @@ class VideoUnitTest extends TestCase
         );
     }
 
-    public function testIncrementingAttribute(){
+    public function testIncrementingAttribute()
+    {
         $this->assertFalse($this->video->incrementing);
     }
 
-    public function testKeyTypeAttribute(){
+    public function testKeyTypeAttribute()
+    {
         $this->assertEquals(
             'string',
             $this->video->getKeyType()
         );
     }
 
-    public function testCastsAttribute(){
+    public function testCastsAttribute()
+    {
         $this->assertEquals(
             [
                 'id' => 'string',
@@ -78,9 +82,14 @@ class VideoUnitTest extends TestCase
         );
     }
 
-    public function testIfUseTraits(){
+    public function testIfUseTraits()
+    {
         $traits = [
-            SoftDeletes::class, Uuid::class, UploadFiles::class
+            SoftDeletes::class,
+            Uuid::class,
+            UploadFiles::class,
+            SerializeDateToISO8601::class,
+            Filterable::class
         ];
 
         $videoTraits = array_keys(class_uses(Video::class));
@@ -88,17 +97,19 @@ class VideoUnitTest extends TestCase
         $this->assertEquals($traits, $videoTraits);
     }
 
-    public function testDatesAttribute(){
-        $dates = ['deleted_at','updated_at','created_at'];
+    public function testDatesAttribute()
+    {
+        $dates = ['deleted_at', 'updated_at', 'created_at'];
 
-        foreach($dates as $date){
-            $this->assertContains($date,$this->video->getDates());
+        foreach ($dates as $date) {
+            $this->assertContains($date, $this->video->getDates());
         }
 
         $this->assertCount(count($dates), $this->video->getDates());
     }
 
-    public function testCategoriesMethodExists(){
+    public function testCategoriesMethodExists()
+    {
         $methods = [
             'categories',
             'genres'
@@ -106,8 +117,9 @@ class VideoUnitTest extends TestCase
         $this->verifyMethodExists($methods);
     }
 
-    protected function verifyMethodExists(array $methods){
-        foreach($methods as $method){
+    protected function verifyMethodExists(array $methods)
+    {
+        foreach ($methods as $method) {
             $this->assertTrue(method_exists(Video::class, $method));
         }
     }

@@ -7,8 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 trait TestResources
 {
-  protected function assertResource(TestResponse $response, JsonResource $resource)
-  {
-    return $response->assertJson($resource->response()->getData(true));
-  }
+    protected function assertResource(TestResponse $response, JsonResource $resource)
+    {
+        return $response->assertJson($resource->response()->getData(true));
+    }
 }

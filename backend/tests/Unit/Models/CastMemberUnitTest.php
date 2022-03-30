@@ -7,6 +7,8 @@ use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
+use App\Models\Traits\SerializeDateToISO8601;
+use EloquentFilter\Filterable;
 
 class CastMemberUnitTest extends TestCase
 {
@@ -24,7 +26,6 @@ class CastMemberUnitTest extends TestCase
     {
         parent::setUp();
         $this->castMember = new CastMember();
-
     }
 
     protected function tearDown(): void
@@ -45,32 +46,39 @@ class CastMemberUnitTest extends TestCase
     public function testFillableAttribute()
     {
         $this->assertEquals(
-            ['name','type'],
+            ['name', 'type'],
             $this->castMember->getFillable()
         );
     }
 
-    public function testIncrementingAttribute(){
+    public function testIncrementingAttribute()
+    {
         $this->assertFalse($this->castMember->incrementing);
     }
 
-    public function testKeyTypeAttribute(){
+    public function testKeyTypeAttribute()
+    {
         $this->assertEquals(
             'string',
             $this->castMember->getKeyType()
         );
     }
 
-    public function testCastsAttribute(){
+    public function testCastsAttribute()
+    {
         $this->assertEquals(
-            ['id'=>'string','name'=>'string','type'=>'integer'],
+            ['id' => 'string', 'name' => 'string', 'type' => 'integer'],
             $this->castMember->getCasts()
         );
     }
 
-    public function testIfUseTraits(){
+    public function testIfUseTraits()
+    {
         $traits = [
-            SoftDeletes::class, Uuid::class
+            SoftDeletes::class,
+            Uuid::class,
+            SerializeDateToISO8601::class,
+            Filterable::class
         ];
 
         $castMemberTraits = array_keys(class_uses(CastMember::class));
@@ -78,11 +86,12 @@ class CastMemberUnitTest extends TestCase
         $this->assertEquals($traits, $castMemberTraits);
     }
 
-    public function testDatesAttribute(){
-        $dates = ['deleted_at','updated_at','created_at'];
+    public function testDatesAttribute()
+    {
+        $dates = ['deleted_at', 'updated_at', 'created_at'];
 
-        foreach($dates as $date){
-            $this->assertContains($date,$this->castMember->getDates());
+        foreach ($dates as $date) {
+            $this->assertContains($date, $this->castMember->getDates());
         }
 
         $this->assertCount(count($dates), $this->castMember->getDates());

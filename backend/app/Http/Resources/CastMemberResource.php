@@ -17,9 +17,9 @@ class CastMemberResource extends JsonResource
     {
         $castMemberList = parent::toArray($request);
 
-        $typeName = $castMemberList['type'] === CastMember::TYPE_DIRECTOR ? CastMember::TYPE_DIRECTOR.'-DIRECTOR' : CastMember::TYPE_ACTOR.'-ACTOR';
+        // $typeName = $castMemberList['type'] === CastMember::TYPE_DIRECTOR ? CastMember::TYPE_DIRECTOR.'-DIRECTOR' : CastMember::TYPE_ACTOR.'-ACTOR';
 
-        $castMemberList['type_name'] = $typeName;
+        // $castMemberList['type_name'] = $typeName;
 
         return $castMemberList;
     }

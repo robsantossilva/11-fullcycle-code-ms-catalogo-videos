@@ -1,0 +1,9 @@
+{
+    //"phpunit.command": "docker-compose exec app backend/vendor/bin/phpunit -c backend/phpunit.xml"
+    "phpunit.command": "docker-compose exec app",
+    "phpunit.phpunit": "backend/vendor/bin/phpunit",
+    "phpunit.paths": {                      // Map paths in remote environments.
+        //"/home/robson/fullcycle/11-fullcycle-code-ms-catalogo-videos": "/",      // ${workspaceFolder} is replaced as in tasks.json
+        "${workspaceFolder}": "."
+    }
+}
