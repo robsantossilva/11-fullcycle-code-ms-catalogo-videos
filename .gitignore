@@ -1,5 +1,4 @@
 .devcontainer/
 .docker/dbdata/
 .idea/
-.vscode/
 .npm-cache/

@@ -7,6 +7,8 @@ use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
+use App\Models\Traits\SerializeDateToISO8601;
+use EloquentFilter\Filterable;
 
 class CategoryUnitTest extends TestCase
 {
@@ -24,7 +26,6 @@ class CategoryUnitTest extends TestCase
     {
         parent::setUp();
         $this->category = new Category();
-
     }
 
     protected function tearDown(): void
@@ -45,33 +46,40 @@ class CategoryUnitTest extends TestCase
     public function testFillableAttribute()
     {
         $this->assertEquals(
-            ['name','description','is_active'],
+            ['name', 'description', 'is_active'],
             $this->category->getFillable()
         );
     }
 
-    public function testIncrementingAttribute(){
+    public function testIncrementingAttribute()
+    {
         $this->assertFalse($this->category->incrementing);
     }
 
-    public function testKeyTypeAttribute(){
+    public function testKeyTypeAttribute()
+    {
         $this->assertEquals(
             'string',
             $this->category->getKeyType()
         );
     }
 
-    public function testCastsAttribute(){
+    public function testCastsAttribute()
+    {
         $this->assertEquals(
-            ['id'=>'string','is_active'=>'boolean'],
+            ['id' => 'string', 'is_active' => 'boolean'],
             $this->category->getCasts()
         );
     }
 
-    public function testIfUseTraits(){
+    public function testIfUseTraits()
+    {
         $traits = [
-            SoftDeletes::class, 
-            Uuid::class
+            SoftDeletes::class,
+            Uuid::class,
+            SerializeDateToISO8601::class,
+            Filterable::class
+
         ];
 
         $categoryTraits = array_keys(class_uses(Category::class));
@@ -79,25 +87,28 @@ class CategoryUnitTest extends TestCase
         $this->assertEquals($traits, $categoryTraits);
     }
 
-    public function testDatesAttribute(){
-        $dates = ['deleted_at','updated_at','created_at'];
+    public function testDatesAttribute()
+    {
+        $dates = ['deleted_at', 'updated_at', 'created_at'];
 
-        foreach($dates as $date){
-            $this->assertContains($date,$this->category->getDates());
+        foreach ($dates as $date) {
+            $this->assertContains($date, $this->category->getDates());
         }
 
         $this->assertCount(count($dates), $this->category->getDates());
     }
 
-    public function testGenresMethodExists(){
+    public function testGenresMethodExists()
+    {
         $methods = [
             'genres'
         ];
         $this->verifyMethodExists($methods);
     }
 
-    protected function verifyMethodExists(array $methods){
-        foreach($methods as $method){
+    protected function verifyMethodExists(array $methods)
+    {
+        foreach ($methods as $method) {
             $this->assertTrue(method_exists(Category::class, $method));
         }
     }
