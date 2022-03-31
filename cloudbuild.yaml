@@ -130,8 +130,7 @@ steps:
 
   - id: "Test Laravel and React integration"
     name: "gcr.io/cloud-builders/docker"
-    args:
-      [
+    args: [
         "exec",
         "-w",
         "/var/www/backend",
@@ -140,7 +139,7 @@ steps:
         "php",
         "artisan",
         "dusk",
-        "--env=testing",
+        #"--env=testing",
       ]
 # - id: "Rodando docker ps"
 #   name: 'gcr.io/cloud-builders/docker'
